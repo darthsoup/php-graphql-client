@@ -8,54 +8,35 @@ use GraphQL\Query;
 
 // Create Client object to contact the GraphQL endpoint
 $client = new Client(
-    'https://graphql-pokemon.now.sh/',
+    'https://graphql-pokeapi.graphcdn.app/',
     []  // Replace with array of extra headers to be sent with request for auth or other purposes
 );
 
 
 // Create the GraphQL query
 $gql = (new Query('pokemon'))
-    ->setArguments(['name' => 'Pikachu'])
+    ->setArguments(['name' => 'pikachu'])
     ->setSelectionSet(
         [
             'id',
-            'number',
             'name',
-            (new Query('attacks'))
+            (new Query('sprites'))
                 ->setSelectionSet(
                     [
-                        (new Query('special'))
-                            ->setSelectionSet(
-                                [
-                                    'name',
-                                    'type',
-                                    'damage',
-                                ]
-                            )
+                       'front_default'
                     ]
-
                 ),
-            (new Query('evolutions'))
+            (new Query('moves'))
                 ->setSelectionSet(
                     [
-                        'id',
-                        'number',
-                        'name',
-                        (new Query('attacks'))
+                        (new Query('move'))
                             ->setSelectionSet(
                                 [
-                                    (new Query('fast'))
-                                        ->setSelectionSet(
-                                            [
-                                                'name',
-                                                'type',
-                                                'damage',
-                                            ]
-                                        )
+                                    'name'
                                 ]
-                            )
+                            ),
                     ]
-                )
+                ),
         ]
     );
 
@@ -65,7 +46,7 @@ try {
 }
 catch (QueryError $exception) {
 
-    // Catch query error and desplay error details
+    // Catch query error and dispaly error details
     print_r($exception->getErrorDetails());
     exit;
 }
@@ -74,8 +55,8 @@ catch (QueryError $exception) {
 var_dump($results->getResponseObject());
 
 // Display part of the returned results of the object
-var_dump($results->getData()->pokemon);
+var_dump($results->getData());
 
 // Reformat the results to an array and get the results of part of the array
 $results->reformatResults(true);
-print_r($results->getData()['pokemon']);
+var_dump($results->getData()['pokemon']);

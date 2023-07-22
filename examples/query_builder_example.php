@@ -8,38 +8,24 @@ use GraphQL\QueryBuilder\QueryBuilder;
 
 // Create Client object to contact the GraphQL endpoint
 $client = new Client(
-    'https://graphql-pokemon.now.sh/',
+    'https://graphql-pokeapi.graphcdn.app/',
     []  // Replace with array of extra headers to be sent with request for auth or other purposes
 );
 
 // Create the GraphQL query
 $builder = (new QueryBuilder('pokemon'))
-    ->setArgument('name', 'Pikachu')
+    ->setArgument('name', 'pikachu')
     ->selectField('id')
-    ->selectField('number')
     ->selectField('name')
     ->selectField(
-        (new QueryBuilder('attacks'))
-            ->selectField(
-                (new QueryBuilder('special'))
-                    ->selectField('name')
-                    ->selectField('type')
-                    ->selectField('damage')
-            )
+        (new QueryBuilder('sprites'))
+            ->selectField('front_default')
     )
     ->selectField(
-        (new QueryBuilder('evolutions'))
-            ->selectField('id')
-            ->selectField('name')
-            ->selectField('number')
+        (new QueryBuilder('moves'))
             ->selectField(
-                (new QueryBuilder('attacks'))
-                    ->selectField(
-                        (new QueryBuilder('fast'))
-                            ->selectField('name')
-                            ->selectField('type')
-                            ->selectField('damage')
-                    )
+                (new QueryBuilder('move'))
+                    ->selectField('name')
             )
     );
 
@@ -62,4 +48,4 @@ var_dump($results->getData()->pokemon);
 
 // Reformat the results to an array and get the results of part of the array
 $results->reformatResults(true);
-print_r($results->getData()['pokemon']);
+var_dump($results->getData()['pokemon']);

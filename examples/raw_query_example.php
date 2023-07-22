@@ -7,23 +7,28 @@ use GraphQL\Exception\QueryError;
 
 // Create Client object to contact the GraphQL endpoint
 $client = new Client(
-    'https://graphql-pokemon.now.sh/',
+    'https://graphql-pokeapi.graphcdn.app/',
     []  // Replace with array of extra headers to be sent with request for auth or other purposes
 );
 
 $gql = <<<QUERY
 query {
-    pokemon(name: "Pikachu") {
+    pokemon(name: "ditto") {
         id
-        number
-        name
-        attacks {
-            special {
-                name
-                type
-                damage
-            }
-        }
+		name
+		sprites {
+			front_default
+		}
+		moves {
+			move {
+				name
+			}
+		}
+		types {
+			type {
+				name
+			}
+		}
     }
 }
 QUERY;
@@ -47,4 +52,4 @@ var_dump($results->getData()->pokemon);
 
 // Reformat the results to an array and get the results of part of the array
 $results->reformatResults(true);
-print_r($results->getData()['pokemon']);
+var_dump($results->getData()['pokemon']);
