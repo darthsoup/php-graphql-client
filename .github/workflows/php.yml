@@ -1,43 +1,51 @@
-name: PHP Composer
+name: tests
 
 on:
   push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
 
 jobs:
-  build:
 
-    runs-on: ubuntu-latest
+  tests:
+    name: ${{ matrix.operating-system }} with PHP ${{ matrix.php-version }}
+
     strategy:
       matrix:
-        php: [7.3, 7.4, 8.0]
+        operating-system:
+          - 'ubuntu-latest'
+        php-version:
+          - '8.1'
+          - '8.2'
+
+    runs-on: ${{ matrix.operating-system }}
 
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Validate composer.json and composer.lock
-      run: composer validate --strict
+      - name: Install PHP with extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
 
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v2
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
-    - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ matrix.php-version }}-${{ hashFiles('composer.*') }}
+          restore-keys: |
+            composer-${{ runner.os }}-${{ matrix.php-version }}-
+            composer-${{ runner.os }}-
+            composer-
 
-    # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
-    # Docs: https://getcomposer.org/doc/articles/scripts.md
+      - name: Download dependencies
+        run: |
+          composer update --no-interaction --no-progress --optimize-autoloader
 
-    - name: Run test suite
-      run: composer run test
-      env:
-        AWS_ACCESS_KEY_ID: key
-        AWS_SECRET_ACCESS_KEY: secret
-        AWS_SESSION_TOKEN: token
+      - name: Run tests with PHPUnit
+        run: |
+          vendor/bin/phpunit
