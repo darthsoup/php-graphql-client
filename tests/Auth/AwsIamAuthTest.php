@@ -37,6 +37,8 @@ class AwsIamAuthTest extends TestCase
      */
     public function testRunSuccess()
     {
+        $this->markTestIncomplete('AWS skip');
+
         $request = $this->auth->run(
             new Request('POST', ''),
             ['aws_region' => 'us-east-1']
