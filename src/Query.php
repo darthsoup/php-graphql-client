@@ -93,8 +93,6 @@ class Query extends NestableObject
     }
 
     /**
-     * @param string $alias
-     *
      * @return Query
      */
     public function setAlias(string $alias)
@@ -105,8 +103,6 @@ class Query extends NestableObject
     }
 
     /**
-     * @param string $operationName
-     *
      * @return Query
      */
     public function setOperationName(string $operationName)
@@ -119,8 +115,6 @@ class Query extends NestableObject
     }
 
     /**
-     * @param array $variables
-     *
      * @return Query
      */
     public function setVariables(array $variables)
@@ -141,9 +135,7 @@ class Query extends NestableObject
      * Throwing exception when setting the arguments if they are incorrect because we can't throw an exception during
      * the execution of __ToString(), it's a fatal error in PHP
      *
-     * @param array $arguments
      *
-     * @return Query
      * @throws ArgumentException
      */
     public function setArguments(array $arguments): Query
@@ -163,9 +155,6 @@ class Query extends NestableObject
         return $this;
     }
 
-    /**
-     * @return string
-     */
     protected function constructVariables(): string
     {
         if (empty($this->variables)) {
@@ -186,14 +175,10 @@ class Query extends NestableObject
             // Append variable string value to the variables string
             $varsString .= (string) $variable;
         }
-        $varsString .= ')';
 
-        return $varsString;
+        return $varsString . ')';
     }
 
-    /**
-     * @return string
-     */
     protected function constructArguments(): string
     {
         // Return empty string if list is empty
@@ -224,9 +209,8 @@ class Query extends NestableObject
             // TODO: Handle cases where a non-string-convertible object is added to the arguments
             $constraintsString .= $name . ': ' . $value;
         }
-        $constraintsString .= ')';
 
-        return $constraintsString;
+        return $constraintsString . ')';
     }
 
     /**
@@ -251,17 +235,11 @@ class Query extends NestableObject
         return sprintf($queryFormat, $this->generateFieldName(), $argumentsString, $selectionSetString);
     }
 
-    /**
-     * @return string
-     */
     protected function generateFieldName(): string
     {
         return empty($this->alias) ? $this->fieldName : sprintf('%s: %s', $this->alias, $this->fieldName);
     }
 
-    /**
-     * @return string
-     */
     protected function generateSignature(): string
     {
         $signatureFormat = '%s%s%s';

@@ -16,8 +16,6 @@ class RawObject
 
     /**
      * JsonObject constructor.
-     *
-     * @param string $objectString
      */
     public function __construct(string $objectString)
     {

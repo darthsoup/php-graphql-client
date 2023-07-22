@@ -36,9 +36,6 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
 
     /**
      * QueryBuilder constructor.
-     *
-     * @param string $queryObject
-     * @param string $alias
      */
     public function __construct(string $queryObject = '', string $alias = '')
     {
@@ -49,8 +46,6 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
     }
 
     /**
-     * @param string $alias
-     *
      * @return $this
      */
     public function setAlias(string $alias)
@@ -60,9 +55,6 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         return $this;
     }
 
-    /**
-     * @return Query
-     */
     public function getQuery(): Query
     {
         // Convert nested query builders to query objects
@@ -114,9 +106,6 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
     }
 
     /**
-     * @param string $name
-     * @param string $type
-     * @param bool   $isRequired
      * @param null   $defaultValue
      *
      * @return $this

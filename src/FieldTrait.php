@@ -14,16 +14,17 @@ trait FieldTrait
     protected $selectionSet;
 
     /**
-     * @param array $selectionSet
      *
      * @return $this
      * @throws InvalidSelectionException
      */
     public function setSelectionSet(array $selectionSet)
     {
-        $nonStringsFields = array_filter($selectionSet, function($element) {
-            return !is_string($element) && !$element instanceof Query && !$element instanceof InlineFragment;
-        });
+        $nonStringsFields = array_filter(
+            $selectionSet,
+            fn($element) => !is_string($element) && !$element instanceof Query && !$element instanceof InlineFragment
+        );
+
         if (!empty($nonStringsFields)) {
             throw new InvalidSelectionException(
                 'One or more of the selection fields provided is not of type string or Query'
@@ -35,9 +36,6 @@ trait FieldTrait
         return $this;
     }
 
-    /**
-     * @return string
-     */
     protected function constructSelectionSet(): string
     {
         if (empty($this->selectionSet)) {
@@ -63,9 +61,8 @@ trait FieldTrait
             // Append attribute to returned attributes list
             $attributesString .= $attribute;
         }
-        $attributesString .= PHP_EOL . "}";
 
-        return $attributesString;
+        return $attributesString . (PHP_EOL . "}");
     }
 
     public function getSelectionSet()

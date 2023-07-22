@@ -55,12 +55,9 @@ class Results
         }
     }
 
-    /**
-     * @param bool $asArray
-     */
     public function reformatResults(bool $asArray): void
     {
-        $this->results = json_decode($this->responseBody, (bool) $asArray);
+        $this->results = json_decode($this->responseBody, $asArray);
     }
 
     /**

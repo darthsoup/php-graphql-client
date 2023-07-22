@@ -11,8 +11,5 @@ use GraphQL\Query;
  */
 interface QueryBuilderInterface
 {
-    /**
-     * @return Query
-     */
     function getQuery(): Query;
 }

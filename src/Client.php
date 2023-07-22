@@ -54,11 +54,7 @@ class Client
     /**
      * Client constructor.
      *
-     * @param string $endpointUrl
-     * @param array $authorizationHeaders
-     * @param array $httpOptions
      * @param ClientInterface|null $httpClient
-     * @param string $requestMethod
      * @param AuthInterface|null $auth
      */
     public function __construct(
@@ -96,10 +92,7 @@ class Client
 
     /**
      * @param Query|QueryBuilderInterface $query
-     * @param bool                        $resultsAsArray
-     * @param array                       $variables
      *
-     * @return Results
      * @throws QueryError
      */
     public function runQuery($query, bool $resultsAsArray = false, array $variables = []): Results
@@ -116,12 +109,9 @@ class Client
     }
 
     /**
-     * @param string $queryString
      * @param bool   $resultsAsArray
-     * @param array  $variables
      * @param
      *
-     * @return Results
      * @throws QueryError
      */
     public function runRawQuery(string $queryString, $resultsAsArray = false, array $variables = []): Results
@@ -135,7 +125,7 @@ class Client
         // Convert empty variables array to empty json object
         if (empty($variables)) $variables = (object) null;
         // Set query in the request body
-        $bodyArray = ['query' => (string) $queryString, 'variables' => $variables];
+        $bodyArray = ['query' => $queryString, 'variables' => $variables];
         $request = $request->withBody(Utils::streamFor(json_encode($bodyArray)));
 
         if ($this->auth) {

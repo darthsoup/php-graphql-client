@@ -25,11 +25,6 @@ class AwsIamAuth implements AuthInterface
         }
     }
 
-    /**
-     * @param Request $request
-     * @param array $options
-     * @return Request
-     */
     public function run(Request $request, array $options = []): Request
     {
         $region = $options['aws_region'] ?? null;
@@ -42,18 +37,11 @@ class AwsIamAuth implements AuthInterface
         );
     }
 
-    /**
-     * @param string $region
-     * @return SignatureV4
-     */
     protected function getSignature(string $region): SignatureV4
     {
         return new SignatureV4(self::SERVICE_NAME, $region);
     }
 
-    /**
-     * @return Credentials
-     */
     protected function getCredentials(): Credentials
     {
         $provider = CredentialProvider::defaultProvider();

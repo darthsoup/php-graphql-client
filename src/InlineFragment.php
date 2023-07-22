@@ -32,9 +32,6 @@ class InlineFragment extends NestableObject
 
     /**
      * InlineFragment constructor.
-     *
-     * @param string $typeName
-     * @param QueryBuilderInterface|null $queryBuilder
      */
     public function __construct(string $typeName, ?QueryBuilderInterface $queryBuilder = null)
     {

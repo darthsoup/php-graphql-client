@@ -17,8 +17,6 @@ class GuzzleAdapter implements Client\ClientInterface
 
     /**
      * GuzzleAdapter constructor.
-     *
-     * @param ClientInterface $client
      */
     public function __construct(ClientInterface $client)
     {
@@ -26,9 +24,6 @@ class GuzzleAdapter implements Client\ClientInterface
     }
 
     /**
-     * @param RequestInterface $request
-     *
-     * @return ResponseInterface
      * @throws GuzzleException
      */
     public function sendRequest(RequestInterface $request): ResponseInterface

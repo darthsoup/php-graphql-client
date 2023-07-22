@@ -8,9 +8,6 @@ class MutationBuilder extends QueryBuilder
 {
     /**
      * MutationBuilder constructor.
-     *
-     * @param string $queryObject
-     * @param string $alias
      */
     public function __construct(string $queryObject = '', string $alias = '')
     {
@@ -21,8 +18,6 @@ class MutationBuilder extends QueryBuilder
     /**
      * Synonymous method to getQuery(), it just return a Mutation type instead of Query type creating a neater
      * interface when using interfaces
-     *
-     * @return Mutation
      */
     public function getMutation(): Mutation
     {

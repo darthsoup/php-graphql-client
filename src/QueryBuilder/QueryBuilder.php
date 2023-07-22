@@ -26,9 +26,7 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * Changing method visibility to public
      *
-     * @param string $argumentName
      * @param        $argumentValue
-     *
      * @return AbstractQueryBuilder|QueryBuilder
      */
     public function setArgument(string $argumentName, $argumentValue)
@@ -39,9 +37,6 @@ class QueryBuilder extends AbstractQueryBuilder
     /**
      * Changing method visibility to public
      *
-     * @param string $name
-     * @param string $type
-     * @param bool   $isRequired
      * @param null   $defaultValue
      *
      * @return AbstractQueryBuilder|QueryBuilder

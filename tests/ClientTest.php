@@ -109,7 +109,7 @@ class ClientTest extends TestCase
     public function testConstructClientWithGetRequestMethod()
     {
         $this->expectException(MethodNotSupportedException::class);
-        $client = new Client('', [], [], null, 'GET');
+        new Client('', [], [], null, 'GET');
     }
 
     /**

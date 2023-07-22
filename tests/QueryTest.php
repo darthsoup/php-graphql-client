@@ -35,7 +35,6 @@ class QueryTest extends TestCase
      *
      * @covers \GraphQL\Query::constructArguments
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -287,7 +286,6 @@ Object
      *
      * @covers \GraphQL\Query::__toString
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -310,7 +308,6 @@ Object
      * @covers \GraphQL\Exception\ArgumentException
      * @covers \GraphQL\Query::setArguments
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -328,7 +325,6 @@ Object
      * @covers \GraphQL\Query::setArguments
      * @covers \GraphQL\Query::constructArguments
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -352,7 +348,6 @@ Object(arg1: \"value\")
      * @covers \GraphQL\Query::setArguments
      * @covers \GraphQL\Query::constructArguments
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -371,11 +366,9 @@ Object(arg1: 23)
 
     /**
      * @depends clone testEmptyArguments
-
      * @covers \GraphQL\Query::setArguments
      * @covers \GraphQL\Query::constructArguments
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -398,7 +391,6 @@ Object(arg1: true)
      * @covers  \GraphQL\Query::setArguments
      * @covers  \GraphQL\Query::constructArguments
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -421,7 +413,6 @@ Object(arg1: null)
      * @covers \GraphQL\Query::setArguments
      * @covers \GraphQL\Query::constructArguments
      *
-     * @param  Query $query
      *
      * @return Query
      */
@@ -445,7 +436,6 @@ Object(arg1: [1, 2, 3])
      * @covers  \GraphQL\Query::constructArguments
      * @covers  \GraphQL\RawObject::__toString
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -468,7 +458,6 @@ Object(obj: {json_string_array: [\"json value\"]})
      * @covers \GraphQL\Query::setArguments
      * @covers \GraphQL\Query::constructArguments
      *
-     * @param  Query $query
      *
      * @return Query
      */
@@ -493,7 +482,6 @@ Object(arg1: [\"one\", \"two\", \"three\"])
      * @covers \GraphQL\Query::setArguments
      * @covers \GraphQL\Query::constructArguments
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -537,7 +525,6 @@ Object(arg1: \"val1\" arg2: 2 arg3: true)
      * @covers \GraphQL\Query::setSelectionSet
      * @covers \GraphQL\FieldTrait::constructSelectionSet
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -563,7 +550,6 @@ field1
      * @covers \GraphQL\Query::setSelectionSet
      * @covers \GraphQL\FieldTrait::constructSelectionSet
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -590,7 +576,6 @@ field2
      * @covers \GraphQL\Exception\InvalidSelectionException
      * @covers \GraphQL\Query::setSelectionSet
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -607,7 +592,6 @@ field2
      *
      * @coversNothing
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -635,7 +619,6 @@ field2
      * @covers \GraphQL\FieldTrait::constructSelectionSet
      * @covers \GraphQL\Query::setAsNested
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -663,7 +646,6 @@ field2
      *
      * @covers \GraphQL\Query::setAsNested
      *
-     * @param Query $query
      *
      * @return Query
      */
@@ -697,7 +679,6 @@ field3
     /**
      * @depends clone testTwoLevelQueryDoesNotContainWordQuery
      *
-     * @param Query $query
      *
      * @return Query
      */

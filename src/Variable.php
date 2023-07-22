@@ -34,9 +34,6 @@ class Variable
     /**
      * Variable constructor.
      *
-     * @param string $name
-     * @param string $type
-     * @param bool   $isRequired
      * @param null   $defaultValue
      */
     public function __construct(string $name, string $type, bool $isRequired = false, $defaultValue = null)
@@ -47,9 +44,6 @@ class Variable
         $this->defaultValue = $defaultValue;
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         $varString = "\$$this->name: $this->type";
