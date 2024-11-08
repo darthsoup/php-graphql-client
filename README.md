@@ -523,7 +523,7 @@ capabilities of this client.
 
 Github Repo link: https://github.com/lucasbento/graphql-pokemon
 
-API link: https://graphql-pokemon.now.sh/
+API link: https://graphql-pokeapi.graphcdn.app/
 
 This query retrieves any pokemon's evolutions and their attacks:
 
@@ -559,7 +559,7 @@ client:
 
 ```php
 $client = new Client(
-    'https://graphql-pokemon.now.sh/'
+    'https://graphql-pokeapi.graphcdn.app/'
 );
 $gql = (new Query('pokemon'))
     ->setVariables([new Variable('name', 'String', true)])
@@ -608,7 +608,7 @@ class:
 
 ```php
 $client = new Client(
-    'https://graphql-pokemon.now.sh/'
+    'https://graphql-pokeapi.graphcdn.app/'
 );
 $builder = (new QueryBuilder('pokemon'))
     ->setVariable('name', 'String', true)

@@ -31,7 +31,7 @@ try {
 }
 catch (QueryError $exception) {
 
-    // Catch query error and desplay error details
+    // Catch query error and display error details
     print_r($exception->getErrorDetails());
     exit;
 }
