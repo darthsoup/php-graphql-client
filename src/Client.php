@@ -3,16 +3,14 @@
 namespace GraphQL;
 
 use GraphQL\Auth\AuthInterface;
-use GraphQL\Auth\HeaderAuth;
-use GraphQL\Exception\QueryError;
 use GraphQL\Exception\MethodNotSupportedException;
+use GraphQL\Exception\QueryError;
 use GraphQL\QueryBuilder\QueryBuilderInterface;
 use GraphQL\Util\GuzzleAdapter;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Client\ClientInterface;
-use TypeError;
 
 /**
  * Class Client
@@ -21,132 +19,111 @@ use TypeError;
  */
 class Client
 {
-    /**
-     * @var string
-     */
-    protected $endpointUrl;
+    protected string $endpointUrl;
 
-    /**
-     * @var ClientInterface
-     */
-    protected $httpClient;
+    protected ClientInterface $httpClient;
 
-    /**
-     * @var array
-     */
-    protected $httpHeaders;
+    /** @var array<string, string> */
+    protected array $httpHeaders;
 
-    /**
-     * @var array
-     */
-    protected $options;
+    /** @var array<string, mixed> */
+    protected array $options;
 
-    /**
-     * @var string
-     */
-    protected $requestMethod;
+    protected string $requestMethod;
 
-    /**
-     * @var AuthInterface
-     */
-    protected $auth;
+    protected ?AuthInterface $auth = null;
 
     /**
      * Client constructor.
      *
-     * @param ClientInterface|null $httpClient
-     * @param AuthInterface|null $auth
+     * @param array<string, string> $authorizationHeaders
+     * @param array<string, mixed> $httpOptions
      */
     public function __construct(
         string $endpointUrl,
         array $authorizationHeaders = [],
         array $httpOptions = [],
-        ClientInterface $httpClient = null,
+        ?ClientInterface $httpClient = null,
         string $requestMethod = 'POST',
-        AuthInterface $auth = null
+        ?AuthInterface $auth = null
     ) {
-        $headers = array_merge(
-            $authorizationHeaders,
-            $httpOptions['headers'] ?? [],
-            ['Content-Type' => 'application/json']
-        );
-        /**
-         * All headers will be set on the request objects explicitly,
-         * Guzzle doesn't have to care about them at this point, so to avoid any conflicts
-         * we are removing the headers from the options
-         */
-        unset($httpOptions['headers']);
-        $this->options = $httpOptions;
-        if ($auth) {
-            $this->auth = $auth;
+        $optionHeaders = [];
+        if (isset($httpOptions['headers']) && is_array($httpOptions['headers'])) {
+            foreach ($httpOptions['headers'] as $header => $value) {
+                if (is_string($header) && is_string($value)) {
+                    $optionHeaders[$header] = $value;
+                }
+            }
         }
 
-        $this->endpointUrl          = $endpointUrl;
-        $this->httpClient           = $httpClient ?? new GuzzleAdapter(new \GuzzleHttp\Client($httpOptions));
-        $this->httpHeaders          = $headers;
+        $headers = array_merge(
+            $authorizationHeaders,
+            $optionHeaders,
+            ['Content-Type' => 'application/json']
+        );
+
+        unset($httpOptions['headers']);
+        $this->options = $httpOptions;
+        $this->auth = $auth;
+        $this->endpointUrl = $endpointUrl;
+        $this->httpClient = $httpClient ?? new GuzzleAdapter(new \GuzzleHttp\Client($httpOptions));
+        $this->httpHeaders = $headers;
+
         if ($requestMethod !== 'POST') {
             throw new MethodNotSupportedException($requestMethod);
         }
-        $this->requestMethod        = $requestMethod;
+
+        $this->requestMethod = $requestMethod;
     }
 
     /**
-     * @param Query|QueryBuilderInterface $query
+     * @param array<string, mixed> $variables
      *
      * @throws QueryError
      */
-    public function runQuery($query, bool $resultsAsArray = false, array $variables = []): Results
+    public function runQuery(Query|QueryBuilderInterface $query, bool $resultsAsArray = false, array $variables = []): Results
     {
         if ($query instanceof QueryBuilderInterface) {
             $query = $query->getQuery();
-        }
-
-        if (!$query instanceof Query) {
-            throw new TypeError('Client::runQuery accepts the first argument of type Query or QueryBuilderInterface');
         }
 
         return $this->runRawQuery((string) $query, $resultsAsArray, $variables);
     }
 
     /**
-     * @param bool   $resultsAsArray
-     * @param
+     * @param array<string, mixed> $variables
      *
      * @throws QueryError
      */
-    public function runRawQuery(string $queryString, $resultsAsArray = false, array $variables = []): Results
+    public function runRawQuery(string $queryString, bool $resultsAsArray = false, array $variables = []): Results
     {
         $request = new Request($this->requestMethod, $this->endpointUrl);
 
-        foreach($this->httpHeaders as $header => $value) {
+        foreach ($this->httpHeaders as $header => $value) {
             $request = $request->withHeader($header, $value);
         }
 
-        // Convert empty variables array to empty json object
-        if (empty($variables)) $variables = (object) null;
-        // Set query in the request body
-        $bodyArray = ['query' => $queryString, 'variables' => $variables];
-        $request = $request->withBody(Utils::streamFor(json_encode($bodyArray)));
+        $payloadVariables = $variables === [] ? (object) null : $variables;
+        $bodyArray = ['query' => $queryString, 'variables' => $payloadVariables];
+        $encodedBody = json_encode($bodyArray);
+        if ($encodedBody === false) {
+            $encodedBody = '';
+        }
+        $request = $request->withBody(Utils::streamFor($encodedBody));
 
-        if ($this->auth) {
+        if ($this->auth !== null) {
             $request = $this->auth->run($request, $this->options);
         }
 
-        // Send api request and get response
         try {
             $response = $this->httpClient->sendRequest($request);
-        }
-        catch (ClientException $exception) {
+        } catch (ClientException $exception) {
             $response = $exception->getResponse();
-
-            // If exception thrown by client is "400 Bad Request ", then it can be treated as a successful API request
-            // with a syntax error in the query, otherwise the exceptions will be propagated
             if ($response->getStatusCode() !== 400) {
                 throw $exception;
             }
         }
 
-        // Parse response to extract results
         return new Results($response, $resultsAsArray);
     }
 }

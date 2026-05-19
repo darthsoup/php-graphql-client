@@ -11,37 +11,21 @@ use GraphQL\Util\StringLiteralFormatter;
  */
 class Variable
 {
-    /**
-     * @var string
-     */
-    protected $name;
+    protected string $name;
 
-    /**
-     * @var string
-     */
-    protected $type;
+    protected string $type;
 
-    /**
-     * @var bool
-     */
-    protected $required;
+    protected bool $required;
 
-    /**
-     * @var null|string|int|float|bool
-     */
-    protected $defaultValue;
-
-    /**
-     * Variable constructor.
-     *
-     * @param null   $defaultValue
-     */
-    public function __construct(string $name, string $type, bool $isRequired = false, $defaultValue = null)
-    {
-        $this->name         = $name;
-        $this->type         = $type;
-        $this->required     = $isRequired;
-        $this->defaultValue = $defaultValue;
+    public function __construct(
+        string $name,
+        string $type,
+        bool $isRequired = false,
+        protected string|int|float|bool|null $defaultValue = null
+    ) {
+        $this->name = $name;
+        $this->type = $type;
+        $this->required = $isRequired;
     }
 
     public function __toString(): string
@@ -49,7 +33,7 @@ class Variable
         $varString = "\$$this->name: $this->type";
         if ($this->required) {
             $varString .= '!';
-        } elseif (!empty($this->defaultValue)) {
+        } elseif ($this->defaultValue !== null) {
             $varString .= '=' . StringLiteralFormatter::formatValueForRHS($this->defaultValue);
         }
 

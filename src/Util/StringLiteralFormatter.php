@@ -2,6 +2,8 @@
 
 namespace GraphQL\Util;
 
+use GraphQL\RawObject;
+
 /**
  * Class StringLiteralFormatter
  *
@@ -10,27 +12,25 @@ namespace GraphQL\Util;
 class StringLiteralFormatter
 {
     /**
-     * Converts the value provided to the equivalent RHS value to be put in a file declaration
-     *
-     * @param string|int|float|bool $value
+     * @param string|int|float|bool|RawObject|null $value
      */
-    public static function formatValueForRHS($value): string
+    public static function formatValueForRHS(string|int|float|bool|RawObject|null $value): string
     {
+        if ($value instanceof RawObject) {
+            return (string) $value;
+        }
+
         if (is_string($value)) {
-            if (!static::isVariable($value)) {
-                $value = str_replace('"', '\"', $value);
-                if (strpos($value, "\n") !== false) {
+            if (!self::isVariable($value)) {
+                $value = str_replace('"', '\\"', $value);
+                if (str_contains($value, "\n")) {
                     $value = '"""' . $value . '"""';
                 } else {
                     $value = "\"$value\"";
                 }
             }
         } elseif (is_bool($value)) {
-            if ($value) {
-                $value = 'true';
-            } else {
-                $value = 'false';
-            }
+            $value = $value ? 'true' : 'false';
         } elseif ($value === null) {
             $value = 'null';
         } else {
@@ -40,15 +40,14 @@ class StringLiteralFormatter
         return $value;
     }
 
-    /**
-     * Treat string value as variable if it matches variable regex
-     *
-     *
-     */
-    private static function isVariable(string $value): bool {
-        return preg_match('/^\$[_A-Za-z][_0-9A-Za-z]*$/', $value);
+    private static function isVariable(string $value): bool
+    {
+        return (bool) preg_match('/^\$[_A-Za-z][_0-9A-Za-z]*$/', $value);
     }
 
+    /**
+     * @param array<mixed> $array
+     */
     public static function formatArrayForGQLQuery(array $array): string
     {
         $arrString = '[';
@@ -59,7 +58,12 @@ class StringLiteralFormatter
             } else {
                 $arrString .= ', ';
             }
-            $arrString .= self::formatValueForRHS($element);
+
+            if (is_array($element)) {
+                $arrString .= self::formatArrayForGQLQuery($element);
+            } elseif ($element instanceof RawObject || is_scalar($element) || $element === null) {
+                $arrString .= self::formatValueForRHS($element);
+            }
         }
 
         return $arrString . ']';

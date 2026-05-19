@@ -11,7 +11,7 @@ use RunTimeException;
  */
 class MethodNotSupportedException extends RunTimeException
 {
-    public function __construct($requestMethod)
+    public function __construct(string $requestMethod)
     {
         parent::__construct("Method \"$requestMethod\" is currently unsupported by client.");
     }

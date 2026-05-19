@@ -9,19 +9,22 @@ trait FieldTrait
     /**
      * Stores the selection set desired to get from the query, can include nested queries
      *
-     * @var array
+     * @var array<int, string|Query|InlineFragment>
      */
-    protected $selectionSet;
+    protected array $selectionSet;
 
     /**
+     * @param array<int, string|Query|InlineFragment> $selectionSet
      *
      * @return $this
      * @throws InvalidSelectionException
      */
     public function setSelectionSet(array $selectionSet)
     {
+        /** @var array<int, mixed> $selectionItems */
+        $selectionItems = $selectionSet;
         $nonStringsFields = array_filter(
-            $selectionSet,
+            $selectionItems,
             fn($element) => !is_string($element) && !$element instanceof Query && !$element instanceof InlineFragment
         );
 
@@ -40,32 +43,31 @@ trait FieldTrait
     {
         if (empty($this->selectionSet)) {
             return '';
-	    }
+        }
 
-        $attributesString = " {" . PHP_EOL;
-        $first            = true;
+        $attributesString = ' {' . PHP_EOL;
+        $first = true;
         foreach ($this->selectionSet as $attribute) {
-
-            // Append empty line at the beginning if it's not the first item on the list
             if ($first) {
                 $first = false;
             } else {
                 $attributesString .= PHP_EOL;
             }
 
-            // If query is included in attributes set as a nested query
             if ($attribute instanceof Query) {
                 $attribute->setAsNested();
             }
 
-            // Append attribute to returned attributes list
             $attributesString .= $attribute;
         }
 
-        return $attributesString . (PHP_EOL . "}");
+        return $attributesString . (PHP_EOL . '}');
     }
 
-    public function getSelectionSet()
+    /**
+     * @return array<int, string|Query|InlineFragment>
+     */
+    public function getSelectionSet(): array
     {
         return $this->selectionSet;
     }

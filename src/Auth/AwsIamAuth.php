@@ -7,7 +7,7 @@ use Aws\Credentials\CredentialProvider;
 use Aws\Signature\SignatureV4;
 use GraphQL\Exception\AwsRegionNotSetException;
 use GraphQL\Exception\MissingAwsSdkPackageException;
-use GuzzleHttp\Psr7\Request;
+use Psr\Http\Message\RequestInterface;
 
 class AwsIamAuth implements AuthInterface
 {
@@ -20,19 +20,24 @@ class AwsIamAuth implements AuthInterface
      */
     public function __construct()
     {
-        if (!class_exists('\Aws\Signature\SignatureV4')) {
+        if (!class_exists(\Aws\Signature\SignatureV4::class)) {
             throw new MissingAwsSdkPackageException();
         }
     }
 
-    public function run(Request $request, array $options = []): Request
+    /**
+     * @param array<string, mixed> $options
+     */
+    public function run(RequestInterface $request, array $options = []): RequestInterface
     {
         $region = $options['aws_region'] ?? null;
         if ($region === null) {
             throw new AwsRegionNotSetException();
         }
+
         return $this->getSignature($region)->signRequest(
-            $request, $this->getCredentials(),
+            $request,
+            $this->getCredentials(),
             self::SERVICE_NAME
         );
     }
@@ -45,6 +50,7 @@ class AwsIamAuth implements AuthInterface
     protected function getCredentials(): Credentials
     {
         $provider = CredentialProvider::defaultProvider();
+
         return $provider()->wait();
     }
 }

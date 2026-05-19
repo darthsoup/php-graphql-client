@@ -11,16 +11,10 @@ use Psr\Http\Message\ResponseInterface;
 class GuzzleAdapter implements Client\ClientInterface
 {
     /**
-     * @var ClientInterface
-     */
-    private $client;
-
-    /**
      * GuzzleAdapter constructor.
      */
-    public function __construct(ClientInterface $client)
+    public function __construct(private readonly ClientInterface $client)
     {
-        $this->client = $client;
     }
 
     /**

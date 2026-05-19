@@ -9,10 +9,7 @@ namespace GraphQL;
  */
 class RawObject
 {
-    /**
-     * @var string
-     */
-    protected $objectString;
+    protected string $objectString;
 
     /**
      * JsonObject constructor.

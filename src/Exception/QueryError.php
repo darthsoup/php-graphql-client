@@ -13,26 +13,33 @@ use RuntimeException;
  */
 class QueryError extends RuntimeException
 {
-    /**
-     * @var array
-     */
-    protected $errorDetails;
+    /** @var array<string, mixed> */
+    protected array $errorDetails;
 
     /**
      * QueryError constructor.
      *
-     * @param array $errorDetails
+     * @param array<string, mixed> $errorDetails
      */
-    public function __construct($errorDetails)
+    public function __construct(array $errorDetails)
     {
-        $this->errorDetails = $errorDetails['errors'][0];
-        parent::__construct($this->errorDetails['message']);
+        $errors = $errorDetails['errors'] ?? [];
+        assert(is_array($errors));
+
+        $firstError = $errors[0] ?? [];
+        assert(is_array($firstError));
+
+        /** @var array<string, mixed> $firstError */
+        $this->errorDetails = $firstError;
+
+        $message = $this->errorDetails['message'] ?? '';
+        parent::__construct(is_string($message) ? $message : '');
     }
 
     /**
-     * @return array
+     * @return array<string, mixed>
      */
-    public function getErrorDetails()
+    public function getErrorDetails(): array
     {
         return $this->errorDetails;
     }
