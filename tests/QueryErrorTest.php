@@ -3,19 +3,12 @@
 namespace GraphQL\Tests;
 
 use GraphQL\Exception\QueryError;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Class QueryErrorTest
- *
- * @package GraphQL\Tests
- */
 class QueryErrorTest extends TestCase
 {
-    /**
-     * @covers \GraphQL\Exception\QueryError::__construct
-     * @covers \GraphQL\Exception\QueryError::getErrorDetails
-     */
+    #[Test]
     public function testConstructQueryError()
     {
         $exceptionMessage = 'some syntax error';

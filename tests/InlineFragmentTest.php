@@ -5,21 +5,12 @@ namespace GraphQL\Tests;
 use GraphQL\InlineFragment;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Class InlineFragmentTest
- *
- * @package GraphQL\Tests
- */
 class InlineFragmentTest extends TestCase
 {
-    /**
-     * @covers \GraphQL\InlineFragment::__construct
-     * @covers \GraphQL\InlineFragment::setSelectionSet
-     * @covers \GraphQL\InlineFragment::constructSelectionSet
-     * @covers \GraphQL\InlineFragment::__toString
-     */
+    #[Test]
     public function testConvertToString()
     {
         $fragment = new InlineFragment('Test');
@@ -39,12 +30,7 @@ field2
         );
     }
 
-    /**
-     * @covers \GraphQL\InlineFragment::__construct
-     * @covers \GraphQL\InlineFragment::setSelectionSet
-     * @covers \GraphQL\InlineFragment::constructSelectionSet
-     * @covers \GraphQL\InlineFragment::__toString
-     */
+    #[Test]
     public function testConvertNestedFragmentToString()
     {
         $fragment = new InlineFragment('Test');
@@ -87,13 +73,7 @@ another_field
         );
     }
 
-    /**
-     * @covers \GraphQL\InlineFragment::__construct
-     * @covers \GraphQL\InlineFragment::setSelectionSet
-     * @covers \GraphQL\InlineFragment::getSelectionSet
-     * @covers \GraphQL\InlineFragment::constructSelectionSet
-     * @covers \GraphQL\InlineFragment::__toString
-     */
+    #[Test]
     public function testConvertQueryBuilderToString()
     {
         $queryBuilder = new QueryBuilder();

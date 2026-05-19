@@ -6,34 +6,19 @@ use GraphQL\InlineFragment;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\RawObject;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- * This test case is responsible for testing the QueryBuilder and AbstractQueryBuilder classes
- *
- * Class QueryBuilderTest
- *
- * @package GraphQL\Tests
- */
 class QueryBuilderTest extends TestCase
 {
-    /**
-     * @var QueryBuilder
-     */
-    protected $queryBuilder;
+    protected QueryBuilder $queryBuilder;
 
-    /**
-     *
-     */
     public function setUp(): void
     {
         $this->queryBuilder = new QueryBuilder('Object');
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::__construct
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::__construct
-     */
+    #[Test]
     public function testConstruct()
     {
         $builder = new QueryBuilder('Object');
@@ -48,10 +33,7 @@ field_one
         );
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::__construct
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::__construct
-     */
+    #[Test]
     public function testConstructWithAlias()
     {
         $builder = new QueryBuilder('Object', 'ObjectAlias');
@@ -66,11 +48,7 @@ field_one
         );
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::__construct
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::__construct
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::setAlias
-     */
+    #[Test]
     public function testSetAlias()
     {
         $builder = (new QueryBuilder('Object'))
@@ -86,11 +64,7 @@ field_one
         );
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::setVariable
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::setVariable
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::getQuery
-     */
+    #[Test]
     public function testAddVariables()
     {
         $this->queryBuilder
@@ -107,9 +81,7 @@ fieldOne
         );
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::getQuery
-     */
+    #[Test]
     public function testAddVariablesToSecondLevelQueryDoesNothing()
     {
         $this->queryBuilder
@@ -133,11 +105,7 @@ fieldTwo
         );
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::getQuery
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::selectField
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::selectField
-     */
+    #[Test]
     public function testSelectScalarFields()
     {
         $this->queryBuilder->selectField('field_one');
@@ -153,10 +121,7 @@ field_two
         );
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::getQuery
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::selectField
-     */
+    #[Test]
     public function testSelectNestedQuery()
     {
         $this->queryBuilder->selectField(
@@ -175,10 +140,7 @@ some_field
         );
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::getQuery
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::selectField
-     */
+    #[Test]
     public function testSelectNestedQueryBuilder()
     {
         $this->queryBuilder->selectField(
@@ -197,11 +159,7 @@ some_field
         );
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::__construct
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::getQuery
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::selectField
-     */
+    #[Test]
     public function testQueryBuilderWithoutFieldName()
     {
         $builder = (new QueryBuilder())
@@ -225,11 +183,7 @@ two
             (string) $builder->getQuery());
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::getQuery
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::selectField
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::selectField
-     */
+    #[Test]
     public function testSelectInlineFragment()
     {
         $this->queryBuilder->selectField(
@@ -248,11 +202,7 @@ field
         );
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::getQuery
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::setArgument
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::setArgument
-     */
+    #[Test]
     public function testSelectArguments()
     {
         $this->queryBuilder->selectField('field');
@@ -307,13 +257,7 @@ field
         );
     }
 
-    /**
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::getQuery
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::setArgument
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::setArgument
-     * @covers \GraphQL\QueryBuilder\QueryBuilder::selectField
-     * @covers \GraphQL\QueryBuilder\AbstractQueryBuilder::selectField
-     */
+    #[Test]
     public function testSetTwoLevelArguments()
     {
         $this->queryBuilder->selectField(

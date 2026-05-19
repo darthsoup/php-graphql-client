@@ -9,19 +9,17 @@ use GraphQL\InlineFragment;
 use GraphQL\Query;
 use GraphQL\RawObject;
 use GraphQL\Variable;
+use PHPUnit\Framework\Attributes\Depends;
+use PHPUnit\Framework\Attributes\DependsUsingDeepClone;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Class QueryTest
- */
 class QueryTest extends TestCase
 {
     /**
-     * @covers \GraphQL\Query::__ToString
-     * @covers \GraphQL\Query::__construct
-     *
      * @return Query
      */
+    #[Test]
     public function testConvertsToString()
     {
         $query = new Query('Object');
@@ -31,13 +29,10 @@ class QueryTest extends TestCase
     }
 
     /**
-     * @depends testConvertsToString
-     *
-     * @covers \GraphQL\Query::constructArguments
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[Depends('testConvertsToString')]
     public function testEmptyArguments(Query $query)
     {
         $this->assertStringNotContainsString("()", (string) $query, 'Query has empty arguments list');
@@ -45,10 +40,7 @@ class QueryTest extends TestCase
         return $query;
     }
 
-    /**
-     * @covers \GraphQL\Query::__toString
-     * @covers FieldTrait::constructSelectionSet
-     */
+    #[Test]
     public function testQueryWithoutFieldName()
     {
         $query = new Query();
@@ -80,12 +72,8 @@ two
         );
     }
 
-    /**
-     * @depends testConvertsToString
-     *
-     * @covers \GraphQL\Query::generateSignature
-     * @covers \GraphQL\Query::__toString
-     */
+    #[Test]
+    #[Depends('testConvertsToString')]
     public function testQueryWithAlias()
     {
         $query = (new Query('Object', 'ObjectAlias'))
@@ -103,13 +91,8 @@ one
         );
     }
 
-    /**
-     * @depends testConvertsToString
-     *
-     * @covers \GraphQL\Query::setAlias
-     * @covers \GraphQL\Query::generateSignature
-     * @covers \GraphQL\Query::__toString
-     */
+    #[Test]
+    #[Depends('testConvertsToString')]
     public function testQueryWithSetAlias()
     {
         $query = (new Query('Object'))
@@ -128,13 +111,8 @@ one
         );
     }
 
-    /**
-     * @depends testConvertsToString
-     *
-     * @covers \GraphQL\Query::generateSignature
-     * @covers \GraphQL\Query::setOperationName
-     * @covers \GraphQL\Query::__toString
-     */
+    #[Test]
+    #[Depends('testConvertsToString')]
     public function testQueryWithOperationName()
     {
         $query = (new Query('Object'))
@@ -147,14 +125,9 @@ Object
         );
     }
 
-    /**
-     * @depends testQueryWithoutFieldName
-     * @depends testQueryWithOperationName
-     *
-     * @covers \GraphQL\Query::generateSignature
-     * @covers \GraphQL\Query::setOperationName
-     * @covers \GraphQL\Query::__toString
-     */
+    #[Test]
+    #[Depends('testQueryWithoutFieldName')]
+    #[Depends('testQueryWithOperationName')]
     public function testQueryWithOperationNameAndOperationType()
     {
         $query = (new Query())
@@ -168,13 +141,8 @@ Object
         );
     }
 
-    /**
-     * @depends testQueryWithOperationName
-     *
-     * @covers \GraphQL\Query::generateSignature
-     * @covers \GraphQL\Query::setOperationName
-     * @covers \GraphQL\Query::__toString
-     */
+    #[Test]
+    #[Depends('testQueryWithOperationName')]
     public function testQueryWithOperationNameInSecondLevelDoesNothing()
     {
         $query = (new Query('Object'))
@@ -190,24 +158,15 @@ Nested
         );
     }
 
-    /**
-     * @covers \GraphQL\Query::setVariables
-     * @covers \GraphQL\Exception\InvalidVariableException
-     */
+    #[Test]
     public function testSetVariablesWithoutVariableObjects()
     {
         $this->expectException(InvalidVariableException::class);
         (new Query('Object'))->setVariables(['one', 'two']);
     }
 
-    /**
-     * @depends testConvertsToString
-     *
-     * @covers \GraphQL\Query::setVariables
-     * @covers \GraphQL\Query::generateSignature
-     * @covers \GraphQL\Query::constructVariables
-     * @covers \GraphQL\Query::__toString
-     */
+    #[Test]
+    #[Depends('testConvertsToString')]
     public function testQueryWithOneVariable()
     {
         $query = (new Query('Object'))
@@ -220,14 +179,8 @@ Object
         );
     }
 
-    /**
-     * @depends testQueryWithOneVariable
-     *
-     * @covers \GraphQL\Query::setVariables
-     * @covers \GraphQL\Query::generateSignature
-     * @covers \GraphQL\Query::constructVariables
-     * @covers \GraphQL\Query::__toString
-     */
+    #[Test]
+    #[Depends('testQueryWithOneVariable')]
     public function testQueryWithMultipleVariables()
     {
         $query = (new Query('Object'))
@@ -240,11 +193,8 @@ Object
         );
     }
 
-    /**
-     * @depends testConvertsToString
-     *
-     * @covers \GraphQL\Query::__toString
-     */
+    #[Test]
+    #[Depends('testConvertsToString')]
     public function testQueryWithVariablesInSecondLevelDoesNothing()
     {
         $query = (new Query('Object'))
@@ -261,13 +211,9 @@ Nested
         );
     }
 
-    /**
-     * @depends testQueryWithMultipleVariables
-     * @depends testQueryWithOperationName
-     *
-     * @covers \GraphQL\Query::generateSignature
-     * @covers \GraphQL\Query::__toString
-     */
+    #[Test]
+    #[Depends('testQueryWithMultipleVariables')]
+    #[Depends('testQueryWithOperationName')]
     public function testQueryWithOperationNameAndVariables()
     {
         $query = (new Query('Object'))
@@ -282,13 +228,10 @@ Object
     }
 
     /**
-     * @depends clone testEmptyArguments
-     *
-     * @covers \GraphQL\Query::__toString
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyArguments')]
     public function testEmptyQuery(Query $query)
     {
         $this->assertEquals(
@@ -303,14 +246,10 @@ Object
     }
 
     /**
-     * @depends clone testEmptyArguments
-     *
-     * @covers \GraphQL\Exception\ArgumentException
-     * @covers \GraphQL\Query::setArguments
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyArguments')]
     public function testArgumentWithoutName(Query $query)
     {
         $this->expectException(ArgumentException::class);
@@ -320,14 +259,10 @@ Object
     }
 
     /**
-     * @depends clone testEmptyArguments
-     *
-     * @covers \GraphQL\Query::setArguments
-     * @covers \GraphQL\Query::constructArguments
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyArguments')]
     public function testStringArgumentValue(Query $query)
     {
         $query->setArguments(['arg1' => 'value']);
@@ -343,14 +278,10 @@ Object(arg1: \"value\")
     }
 
     /**
-     * @depends clone testEmptyArguments
-     *
-     * @covers \GraphQL\Query::setArguments
-     * @covers \GraphQL\Query::constructArguments
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyArguments')]
     public function testIntegerArgumentValue(Query $query)
     {
         $query->setArguments(['arg1' => 23]);
@@ -365,13 +296,10 @@ Object(arg1: 23)
     }
 
     /**
-     * @depends clone testEmptyArguments
-     * @covers \GraphQL\Query::setArguments
-     * @covers \GraphQL\Query::constructArguments
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyArguments')]
     public function testBooleanArgumentValue(Query $query)
     {
         $query->setArguments(['arg1' => true]);
@@ -386,14 +314,10 @@ Object(arg1: true)
     }
 
     /**
-     * @depends clone testEmptyArguments
-     *
-     * @covers  \GraphQL\Query::setArguments
-     * @covers  \GraphQL\Query::constructArguments
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyArguments')]
     public function testNullArgumentValue(Query $query)
     {
         $query->setArguments(['arg1' => null]);
@@ -408,14 +332,10 @@ Object(arg1: null)
     }
 
     /**
-     * @depends clone testEmptyArguments
-     *
-     * @covers \GraphQL\Query::setArguments
-     * @covers \GraphQL\Query::constructArguments
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyArguments')]
     public function testArrayIntegerArgumentValue(Query $query)
     {
         $query->setArguments(['arg1' => [1, 2, 3]]);
@@ -430,15 +350,10 @@ Object(arg1: [1, 2, 3])
     }
 
     /**
-     * @depends clone testEmptyArguments
-     *
-     * @covers  \GraphQL\Query::setArguments
-     * @covers  \GraphQL\Query::constructArguments
-     * @covers  \GraphQL\RawObject::__toString
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyArguments')]
     public function testJsonObjectArgumentValue(Query $query)
     {
         $query->setArguments(['obj' => new RawObject('{json_string_array: ["json value"]}')]);
@@ -453,14 +368,10 @@ Object(obj: {json_string_array: [\"json value\"]})
     }
 
     /**
-     * @depends clone testEmptyArguments
-     *
-     * @covers \GraphQL\Query::setArguments
-     * @covers \GraphQL\Query::constructArguments
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyArguments')]
     public function testArrayStringArgumentValue(Query $query)
     {
         $query->setArguments(['arg1' => ['one', 'two', 'three']]);
@@ -475,16 +386,12 @@ Object(arg1: [\"one\", \"two\", \"three\"])
     }
 
     /**
-     * @depends clone testStringArgumentValue
-     * @depends testIntegerArgumentValue
-     * @depends testBooleanArgumentValue
-     *
-     * @covers \GraphQL\Query::setArguments
-     * @covers \GraphQL\Query::constructArguments
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testStringArgumentValue')]
+    #[Depends('testIntegerArgumentValue')]
+    #[Depends('testBooleanArgumentValue')]
     public function testTwoOrMoreArguments(Query $query)
     {
         $query->setArguments(['arg1' => 'val1', 'arg2' => 2, 'arg3' => true]);
@@ -499,14 +406,8 @@ Object(arg1: \"val1\" arg2: 2 arg3: true)
         return $query;
     }
 
-    /**
-     * @depends testStringArgumentValue
-     *
-     * @covers \GraphQL\Query::setArguments
-     * @covers \GraphQL\Query::constructArguments
-     * @covers \GraphQL\Query::setArguments
-     * @covers \GraphQL\Query::constructArguments
-     */
+    #[Test]
+    #[Depends('testStringArgumentValue')]
     public function testStringWrappingWorks()
     {
         // TODO: Remove this in v1.0 release
@@ -520,14 +421,10 @@ Object(arg1: \"val1\" arg2: 2 arg3: true)
     }
 
     /**
-     * @depends clone testEmptyQuery
-     *
-     * @covers \GraphQL\Query::setSelectionSet
-     * @covers \GraphQL\FieldTrait::constructSelectionSet
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyQuery')]
     public function testSingleSelectionField(Query $query)
     {
         $query->setSelectionSet(['field1']);
@@ -545,14 +442,10 @@ field1
     }
 
     /**
-     * @depends clone testEmptyQuery
-     *
-     * @covers \GraphQL\Query::setSelectionSet
-     * @covers \GraphQL\FieldTrait::constructSelectionSet
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyQuery')]
     public function testTwoOrMoreSelectionFields(Query $query)
     {
         $query->setSelectionSet(['field1', 'field2']);
@@ -571,14 +464,10 @@ field2
     }
 
     /**
-     * @depends clone testEmptyQuery
-     *
-     * @covers \GraphQL\Exception\InvalidSelectionException
-     * @covers \GraphQL\Query::setSelectionSet
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyQuery')]
     public function testSelectNonStringValues(Query $query)
     {
         $this->expectException(InvalidSelectionException::class);
@@ -588,13 +477,10 @@ field2
     }
 
     /**
-     * @depends clone testEmptyQuery
-     *
-     * @coversNothing
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testEmptyQuery')]
     public function testOneLevelQuery(Query $query)
     {
         $query->setSelectionSet(['field1', 'field2']);
@@ -614,14 +500,10 @@ field2
     }
 
     /**
-     * @depends clone testOneLevelQuery
-     *
-     * @covers \GraphQL\FieldTrait::constructSelectionSet
-     * @covers \GraphQL\Query::setAsNested
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testOneLevelQuery')]
     public function testTwoLevelQueryDoesNotContainWordQuery(Query $query)
     {
         $query->setSelectionSet(
@@ -642,13 +524,10 @@ field2
     }
 
     /**
-     * @depends clone testTwoLevelQueryDoesNotContainWordQuery
-     *
-     * @covers \GraphQL\Query::setAsNested
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testTwoLevelQueryDoesNotContainWordQuery')]
     public function testTwoLevelQuery(Query $query)
     {
         $query->setSelectionSet(
@@ -677,11 +556,10 @@ field3
     }
 
     /**
-     * @depends clone testTwoLevelQueryDoesNotContainWordQuery
-     *
-     *
      * @return Query
      */
+    #[Test]
+    #[DependsUsingDeepClone('testTwoLevelQueryDoesNotContainWordQuery')]
     public function testTwoLevelQueryWithInlineFragment(Query $query)
     {
         $query->setSelectionSet(
