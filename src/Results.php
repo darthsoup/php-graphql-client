@@ -5,23 +5,15 @@ namespace GraphQL;
 use GraphQL\Exception\QueryError;
 use Psr\Http\Message\ResponseInterface;
 
-/**
- * Class Result
- *
- * @package GraphQl
- */
 class Results
 {
     protected string $responseBody;
-
     protected ResponseInterface $responseObject;
 
     /** @var array<string, mixed>|object */
     protected array|object $results;
 
-    /**
-     * @throws QueryError
-     */
+    /** @throws QueryError */
     public function __construct(ResponseInterface $response, bool $asArray = false)
     {
         $this->responseObject = $response;
@@ -50,9 +42,7 @@ class Results
         $this->results = $this->decodeResponse($asArray);
     }
 
-    /**
-     * @return array<string, mixed>|object
-     */
+    /** @return array<string, mixed>|object */
     public function getData(): array|object
     {
         if (is_array($this->results)) {
@@ -68,9 +58,7 @@ class Results
         return $results->data;
     }
 
-    /**
-     * @return array<string, mixed>|object
-     */
+    /** @return array<string, mixed>|object */
     public function getResults(): array|object
     {
         return $this->results;
@@ -86,9 +74,7 @@ class Results
         return $this->responseObject;
     }
 
-    /**
-     * @return array<string, mixed>|object
-     */
+    /** @return array<string, mixed>|object */
     protected function decodeResponse(bool $asArray): array|object
     {
         $results = json_decode($this->responseBody, $asArray);

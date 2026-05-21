@@ -10,9 +10,6 @@ use Psr\Http\Message\ResponseInterface;
 
 class GuzzleAdapter implements Client\ClientInterface
 {
-    /**
-     * GuzzleAdapter constructor.
-     */
     public function __construct(private readonly ClientInterface $client)
     {
     }

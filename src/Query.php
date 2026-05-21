@@ -6,23 +6,15 @@ use GraphQL\Exception\ArgumentException;
 use GraphQL\Exception\InvalidVariableException;
 use GraphQL\Util\StringLiteralFormatter;
 
-/**
- * Class Query
- *
- * @package GraphQL
- */
-class Query extends NestableObject
+class Query extends NestableObject implements \Stringable
 {
     use FieldTrait;
 
-    protected const QUERY_FORMAT = '%s%s%s';
-
-    protected const OPERATION_TYPE = 'query';
+    protected const string QUERY_FORMAT = '%s%s%s';
+    protected const string OPERATION_TYPE = 'query';
 
     protected string $operationName;
-
     protected string $fieldName;
-
     protected string $alias;
 
     /** @var array<int, Variable> */
@@ -44,23 +36,17 @@ class Query extends NestableObject
         $this->isNested = false;
     }
 
-    /**
-     * @return Query
-     */
-    public function setAlias(string $alias)
+    public function setAlias(string $alias): static
     {
         $this->alias = $alias;
 
         return $this;
     }
 
-    /**
-     * @return Query
-     */
-    public function setOperationName(string $operationName)
+    public function setOperationName(string $operationName): static
     {
         if (!empty($operationName)) {
-            $this->operationName = " $operationName";
+            $this->operationName = ' ' . $operationName;
         }
 
         return $this;
@@ -69,9 +55,9 @@ class Query extends NestableObject
     /**
      * @param array<int, Variable> $variables
      *
-     * @return Query
+     * @throws InvalidVariableException
      */
-    public function setVariables(array $variables)
+    public function setVariables(array $variables): static
     {
         /** @var array<int, mixed> $variablesToValidate */
         $variablesToValidate = $variables;
@@ -90,7 +76,7 @@ class Query extends NestableObject
      *
      * @throws ArgumentException
      */
-    public function setArguments(array $arguments): Query
+    public function setArguments(array $arguments): static
     {
         /** @var array<array-key, string|int|float|bool|array<mixed>|RawObject|null> $argumentsToValidate */
         $argumentsToValidate = $arguments;
@@ -183,7 +169,7 @@ class Query extends NestableObject
         return sprintf('%s%s%s', static::OPERATION_TYPE, $this->operationName, $this->constructVariables());
     }
 
-    protected function setAsNested()
+    protected function setAsNested(): void
     {
         $this->isNested = true;
     }

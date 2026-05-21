@@ -7,11 +7,6 @@ use GraphQL\Query;
 use GraphQL\RawObject;
 use GraphQL\Variable;
 
-/**
- * Class AbstractQueryBuilder
- *
- * @package GraphQL
- */
 abstract class AbstractQueryBuilder implements QueryBuilderInterface
 {
     protected Query $query;
@@ -33,10 +28,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         $this->argumentsList = [];
     }
 
-    /**
-     * @return $this
-     */
-    public function setAlias(string $alias)
+    public function setAlias(string $alias): static
     {
         $this->query->setAlias($alias);
 
@@ -57,9 +49,6 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         return $this->query;
     }
 
-    /**
-     * @return $this
-     */
     protected function selectField(string|QueryBuilderInterface|Query|InlineFragment $selectedField): static
     {
         $this->selectionSet[] = $selectedField;
@@ -69,8 +58,6 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
 
     /**
      * @param array<mixed>|string|int|float|bool|RawObject $argumentValue
-     *
-     * @return $this
      */
     protected function setArgument(string $argumentName, string|int|float|bool|array|RawObject $argumentValue): static
     {
@@ -79,9 +66,6 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     protected function setVariable(
         string $name,
         string $type,

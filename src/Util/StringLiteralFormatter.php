@@ -4,11 +4,6 @@ namespace GraphQL\Util;
 
 use GraphQL\RawObject;
 
-/**
- * Class StringLiteralFormatter
- *
- * @package GraphQL\Util
- */
 class StringLiteralFormatter
 {
     /**
@@ -26,7 +21,7 @@ class StringLiteralFormatter
                 if (str_contains($value, "\n")) {
                     $value = '"""' . $value . '"""';
                 } else {
-                    $value = "\"$value\"";
+                    $value = '"' . $value . '"';
                 }
             }
         } elseif (is_bool($value)) {

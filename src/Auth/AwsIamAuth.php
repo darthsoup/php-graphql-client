@@ -11,16 +11,12 @@ use Psr\Http\Message\RequestInterface;
 
 class AwsIamAuth implements AuthInterface
 {
-    protected const SERVICE_NAME = 'appsync';
+    protected const string SERVICE_NAME = 'appsync';
 
-    /**
-     * @codeCoverageIgnore
-     *
-     * AwsIamAuth constructor.
-     */
+    /** @codeCoverageIgnore */
     public function __construct()
     {
-        if (!class_exists(\Aws\Signature\SignatureV4::class)) {
+        if (!class_exists(SignatureV4::class)) {
             throw new MissingAwsSdkPackageException();
         }
     }

@@ -6,20 +6,15 @@ use GraphQL\Exception\InvalidSelectionException;
 
 trait FieldTrait
 {
-    /**
-     * Stores the selection set desired to get from the query, can include nested queries
-     *
-     * @var array<int, string|Query|InlineFragment>
-     */
+    /** @var array<int, string|Query|InlineFragment> */
     protected array $selectionSet;
 
     /**
      * @param array<int, string|Query|InlineFragment> $selectionSet
      *
-     * @return $this
      * @throws InvalidSelectionException
      */
-    public function setSelectionSet(array $selectionSet)
+    public function setSelectionSet(array $selectionSet): static
     {
         /** @var array<int, mixed> $selectionItems */
         $selectionItems = $selectionSet;
@@ -61,12 +56,10 @@ trait FieldTrait
             $attributesString .= $attribute;
         }
 
-        return $attributesString . (PHP_EOL . '}');
+        return $attributesString . PHP_EOL . '}';
     }
 
-    /**
-     * @return array<int, string|Query|InlineFragment>
-     */
+    /** @return array<int, string|Query|InlineFragment> */
     public function getSelectionSet(): array
     {
         return $this->selectionSet;

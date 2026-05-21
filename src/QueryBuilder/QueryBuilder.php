@@ -6,16 +6,8 @@ use GraphQL\InlineFragment;
 use GraphQL\Query;
 use GraphQL\RawObject;
 
-/**
- * Class QueryBuilder
- *
- * @package GraphQL
- */
 class QueryBuilder extends AbstractQueryBuilder
 {
-    /**
-     * @return static
-     */
     #[\Override]
     public function selectField(string|QueryBuilderInterface|Query|InlineFragment $selectedField): static
     {
@@ -24,8 +16,6 @@ class QueryBuilder extends AbstractQueryBuilder
 
     /**
      * @param array<mixed>|string|int|float|bool|RawObject $argumentValue
-     *
-     * @return static
      */
     #[\Override]
     public function setArgument(string $argumentName, string|int|float|bool|array|RawObject $argumentValue): static
@@ -33,9 +23,6 @@ class QueryBuilder extends AbstractQueryBuilder
         return parent::setArgument($argumentName, $argumentValue);
     }
 
-    /**
-     * @return static
-     */
     #[\Override]
     public function setVariable(
         string $name,

@@ -12,15 +12,9 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Client\ClientInterface;
 
-/**
- * Class Client
- *
- * @package GraphQL
- */
 class Client
 {
     protected string $endpointUrl;
-
     protected ClientInterface $httpClient;
 
     /** @var array<string, string> */
@@ -30,12 +24,9 @@ class Client
     protected array $options;
 
     protected string $requestMethod;
-
     protected ?AuthInterface $auth = null;
 
     /**
-     * Client constructor.
-     *
      * @param array<string, string> $authorizationHeaders
      * @param array<string, mixed> $httpOptions
      */
