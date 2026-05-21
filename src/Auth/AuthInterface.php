@@ -2,9 +2,12 @@
 
 namespace GraphQL\Auth;
 
-use GuzzleHttp\Psr7\Request;
+use Psr\Http\Message\RequestInterface;
 
 interface AuthInterface
 {
-    public function run(Request $request, array $options = []): Request;
+    /**
+     * @param array<string, mixed> $options
+     */
+    public function run(RequestInterface $request, array $options = []): RequestInterface;
 }

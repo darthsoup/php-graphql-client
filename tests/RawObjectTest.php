@@ -3,14 +3,12 @@
 namespace GraphQL\Tests;
 
 use GraphQL\RawObject;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class RawObjectTest extends TestCase
 {
-    /**
-     * @covers \GraphQL\RawObject::__toString
-     * @covers \GraphQL\RawObject::__construct
-     */
+    #[Test]
     public function testConvertToString()
     {
         // Test convert array

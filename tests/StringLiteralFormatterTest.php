@@ -3,18 +3,12 @@
 namespace GraphQL\Tests;
 
 use GraphQL\Util\StringLiteralFormatter;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Class StringLiteralFormatterTest
- *
- * @package GraphQL\Tests
- */
 class StringLiteralFormatterTest extends TestCase
 {
-    /**
-     * @covers \GraphQL\Util\StringLiteralFormatter::formatValueForRHS
-     */
+    #[Test]
     public function testFormatForClassRHSValue()
     {
         // Null test
@@ -62,9 +56,7 @@ class StringLiteralFormatterTest extends TestCase
         $this->assertEquals('false', $stringFalse);
     }
 
-    /**
-     * @covers \GraphQL\Util\StringLiteralFormatter::formatArrayForGQLQuery
-     */
+    #[Test]
     public function testFormatArrayForGQLQuery()
     {
         $emptyArray = [];
@@ -92,9 +84,7 @@ class StringLiteralFormatterTest extends TestCase
         $this->assertEquals('[1.1, 2.2]', $stringArray);
     }
 
-    /**
-     * @covers \GraphQL\Util\StringLiteralFormatter::formatUpperCamelCase
-     */
+    #[Test]
     public function testFormatUpperCamelCase()
     {
         $snakeCase = 'some_snake_case';
@@ -106,9 +96,7 @@ class StringLiteralFormatterTest extends TestCase
         $this->assertEquals('SomenonSnakeCase', $camelCase);
     }
 
-    /**
-     * @covers \GraphQL\Util\StringLiteralFormatter::formatLowerCamelCase
-     */
+    #[Test]
     public function testFormatLowerCamelCase()
     {
         $snakeCase = 'some_snake_case';
@@ -119,6 +107,5 @@ class StringLiteralFormatterTest extends TestCase
         $camelCase = StringLiteralFormatter::formatLowerCamelCase($nonSnakeCase);
         $this->assertEquals('somenonSnakeCase', $camelCase);
     }
-
 
 }

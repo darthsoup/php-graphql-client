@@ -3,55 +3,37 @@
 namespace GraphQL\Tests;
 
 use GraphQL\Variable;
+use PHPUnit\Framework\Attributes\Depends;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Class VariableTest
- *
- * @package GraphQL\Tests
- */
 class VariableTest extends TestCase
 {
-    /**
-     * @covers \GraphQL\Variable::__construct
-     * @covers \GraphQL\Variable::__toString
-     */
+    #[Test]
     public function testCreateVariable()
     {
         $variable = new Variable('var', 'String');
         $this->assertEquals('$var: String', (string) $variable);
     }
 
-    /**
-     * @depends testCreateVariable
-     *
-     * @covers \GraphQL\Variable::__construct
-     * @covers \GraphQL\Variable::__toString
-     */
+    #[Test]
+    #[Depends('testCreateVariable')]
     public function testCreateRequiredVariable()
     {
         $variable = new Variable('var', 'String', true);
         $this->assertEquals('$var: String!', (string) $variable);
     }
 
-    /**
-     * @depends testCreateRequiredVariable
-     *
-     * @covers \GraphQL\Variable::__construct
-     * @covers \GraphQL\Variable::__toString
-     */
+    #[Test]
+    #[Depends('testCreateRequiredVariable')]
     public function testRequiredVariableWithDefaultValueDoesNothing()
     {
         $variable = new Variable('var', 'String', true, 'def');
         $this->assertEquals('$var: String!', (string) $variable);
     }
 
-    /**
-     * @depends testCreateVariable
-     *
-     * @covers \GraphQL\Variable::__construct
-     * @covers \GraphQL\Variable::__toString
-     */
+    #[Test]
+    #[Depends('testCreateVariable')]
     public function testOptionalVariableWithDefaultValue()
     {
         $variable = new Variable('var', 'String', false, 'def');

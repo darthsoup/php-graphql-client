@@ -4,52 +4,22 @@ namespace GraphQL;
 
 use GraphQL\Util\StringLiteralFormatter;
 
-/**
- * Class Variable
- *
- * @package GraphQL
- */
-class Variable
+class Variable implements \Stringable
 {
-    /**
-     * @var string
-     */
-    protected $name;
-
-    /**
-     * @var string
-     */
-    protected $type;
-
-    /**
-     * @var bool
-     */
-    protected $required;
-
-    /**
-     * @var null|string|int|float|bool
-     */
-    protected $defaultValue;
-
-    /**
-     * Variable constructor.
-     *
-     * @param null   $defaultValue
-     */
-    public function __construct(string $name, string $type, bool $isRequired = false, $defaultValue = null)
-    {
-        $this->name         = $name;
-        $this->type         = $type;
-        $this->required     = $isRequired;
-        $this->defaultValue = $defaultValue;
+    public function __construct(
+        protected readonly string $name,
+        protected readonly string $type,
+        protected readonly bool $required = false,
+        protected readonly string|int|float|bool|null $defaultValue = null
+    ) {
     }
 
     public function __toString(): string
     {
-        $varString = "\$$this->name: $this->type";
+        $varString = '$' . $this->name . ': ' . $this->type;
         if ($this->required) {
             $varString .= '!';
-        } elseif (!empty($this->defaultValue)) {
+        } elseif ($this->defaultValue !== null) {
             $varString .= '=' . StringLiteralFormatter::formatValueForRHS($this->defaultValue);
         }
 

@@ -3,13 +3,12 @@
 namespace GraphQL\Tests;
 
 use GraphQL\Mutation;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class MutationTest extends TestCase
 {
-    /**
-     *
-     */
+    #[Test]
     public function testMutationWithoutOperationType()
     {
         $mutation = new Mutation('createObject');
@@ -22,9 +21,7 @@ createObject
         );
     }
 
-    /**
-     *
-     */
+    #[Test]
     public function testMutationWithOperationType()
     {
         $mutation = new Mutation();
@@ -44,9 +41,7 @@ createObject(name: "TestObject")
         );
     }
 
-    /**
-     *
-     */
+    #[Test]
     public function testMutationWithoutSelectedFields()
     {
         $mutation = (new Mutation('createObject'))
@@ -58,9 +53,7 @@ createObject(name: "TestObject" type: "TestType")
             (string) $mutation);
     }
 
-    /**
-     * 
-     */
+    #[Test]
     public function testMutationWithFields()
     {
         $mutation = (new Mutation('createObject'))
@@ -82,9 +75,7 @@ fieldTwo
         );
     }
 
-    /**
-     *
-     */
+    #[Test]
     public function testMutationWithArgumentsAndFields()
     {
         $mutation = (new Mutation('createObject'))
