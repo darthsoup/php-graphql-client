@@ -1,6 +1,6 @@
 <?php
 
-namespace GraphQL\Tests;
+namespace GraphQL\Tests\Unit\Util;
 
 use GraphQL\Util\StringLiteralFormatter;
 use PHPUnit\Framework\Attributes\Test;

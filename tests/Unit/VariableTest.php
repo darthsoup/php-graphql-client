@@ -1,6 +1,6 @@
 <?php
 
-namespace GraphQL\Tests;
+namespace GraphQL\Tests\Unit;
 
 use GraphQL\Variable;
 use PHPUnit\Framework\Attributes\Depends;

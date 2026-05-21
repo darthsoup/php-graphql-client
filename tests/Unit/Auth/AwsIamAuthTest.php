@@ -1,6 +1,6 @@
 <?php
 
-namespace GraphQL\Tests\Auth;
+namespace GraphQL\Tests\Unit\Auth;
 
 use GraphQL\Auth\AwsIamAuth;
 use GraphQL\Exception\AwsRegionNotSetException;

@@ -11,7 +11,7 @@
     </source>
     <testsuites>
         <testsuite name="GraphQL Client">
-            <directory>./tests/</directory>
+            <directory>./tests/Unit/</directory>
         </testsuite>
     </testsuites>
 </phpunit>

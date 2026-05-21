@@ -1,6 +1,6 @@
 <?php
 
-namespace GraphQL\Tests;
+namespace GraphQL\Tests\Unit\QueryBuilder;
 
 use GraphQL\InlineFragment;
 use GraphQL\Query;

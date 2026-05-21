@@ -1,6 +1,6 @@
 <?php
 
-namespace GraphQL\Tests;
+namespace GraphQL\Tests\Unit\QueryBuilder;
 
 use GraphQL\Mutation;
 use GraphQL\QueryBuilder\MutationBuilder;

@@ -1,6 +1,6 @@
 <?php
 
-namespace GraphQL\Tests;
+namespace GraphQL\Tests\Unit\Exception;
 
 use GraphQL\Exception\QueryError;
 use PHPUnit\Framework\Attributes\Test;
