@@ -54,9 +54,12 @@ class ClientTest extends TestCase
         $client->runRawQuery('query_string');
 
         $client = new Client('', [], ['handler' => $handler]);
-        $client->runRawQuery('query_string',  false, ['name' => 'val']);
+        $client->runRawQuery('query_string', false, ['name' => 'val']);
 
-        $client = new Client('', ['Authorization' => 'Basic xyz'], ['handler' => $handler, 'headers' => [ 'Authorization' => 'Basic zyx', 'User-Agent' => 'test' ]]);
+        $client = new Client('', ['Authorization' => 'Basic xyz'], [
+            'handler' => $handler,
+            'headers' => ['Authorization' => 'Basic zyx', 'User-Agent' => 'test'],
+        ]);
         $client->runRawQuery('query_string');
 
         /** @var Request $firstRequest */
@@ -74,7 +77,10 @@ class ClientTest extends TestCase
 
         /** @var Request $secondRequest */
         $secondRequest = $container[2]['request'];
-        $this->assertEquals('{"query":"query_string","variables":{"name":"val"}}', $secondRequest->getBody()->getContents());
+        $this->assertEquals(
+            '{"query":"query_string","variables":{"name":"val"}}',
+            $secondRequest->getBody()->getContents()
+        );
 
         /** @var Request $fourthRequest */
         $fourthRequest = $container[3]['request'];
@@ -173,8 +179,10 @@ class ClientTest extends TestCase
     #[Test]
     public function testInvalidQueryResponseWith400()
     {
-        $this->mockHandler->append(new ClientException('', new Request('post', ''),
-                new Response(400, [], json_encode([
+        $this->mockHandler->append(new ClientException(
+            '',
+            new Request('post', ''),
+            new Response(400, [], json_encode([
                 'errors' => [
                     [
                         'message' => 'some syntax error',
@@ -186,7 +194,8 @@ class ClientTest extends TestCase
                         ],
                     ]
                 ]
-        ]))));
+            ]))
+        ));
 
         $this->expectException(QueryError::class);
         $this->client->runRawQuery('');
@@ -195,8 +204,10 @@ class ClientTest extends TestCase
     #[Test]
     public function testUnauthorizedResponse()
     {
-        $this->mockHandler->append(new ClientException('', new Request('post', ''),
-                new Response(401, [], json_encode('Unauthorized'))
+        $this->mockHandler->append(new ClientException(
+            '',
+            new Request('post', ''),
+            new Response(401, [], json_encode('Unauthorized'))
         ));
 
         $this->expectException(ClientException::class);

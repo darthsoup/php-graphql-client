@@ -32,9 +32,7 @@ $builder = (new QueryBuilder('pokemon'))
 // Run query to get results
 try {
     $results = $client->runQuery($builder);
-}
-catch (QueryError $exception) {
-
+} catch (QueryError $exception) {
     // Catch query error and display error details
     print_r($exception->getErrorDetails());
     exit;

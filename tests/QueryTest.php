@@ -118,7 +118,7 @@ one
         $query = (new Query('Object'))
             ->setOperationName('retrieveObject');
         $this->assertEquals(
-'query retrieveObject {
+            'query retrieveObject {
 Object
 }',
             (string) $query
@@ -324,8 +324,8 @@ Object(arg1: true)
         $this->assertEquals(
             "query {
 Object(arg1: null)
-}"
-            , (string) $query
+}",
+            (string) $query
         );
 
         return $query;
@@ -360,8 +360,8 @@ Object(arg1: [1, 2, 3])
         $this->assertEquals(
             "query {
 Object(obj: {json_string_array: [\"json value\"]})
-}"
-            , (string) $query
+}",
+            (string) $query
         );
 
         return $query;

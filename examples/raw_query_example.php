@@ -36,9 +36,7 @@ QUERY;
 // Run query to get results
 try {
     $results = $client->runRawQuery($gql);
-}
-catch (QueryError $exception) {
-
+} catch (QueryError $exception) {
     // Catch query error and display error details
     print_r($exception->getErrorDetails());
     exit;

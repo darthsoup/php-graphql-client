@@ -72,8 +72,11 @@ class Client
      *
      * @throws QueryError
      */
-    public function runQuery(Query|QueryBuilderInterface $query, bool $resultsAsArray = false, array $variables = []): Results
-    {
+    public function runQuery(
+        Query|QueryBuilderInterface $query,
+        bool $resultsAsArray = false,
+        array $variables = []
+    ): Results {
         if ($query instanceof QueryBuilderInterface) {
             $query = $query->getQuery();
         }

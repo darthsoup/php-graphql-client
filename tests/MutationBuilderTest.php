@@ -19,17 +19,17 @@ class MutationBuilderTest extends TestCase
     #[Test]
     public function testConstruct()
     {
-       $builder = new MutationBuilder('createObject');
-       $builder->selectField('field_one');
-       $this->assertInstanceOf(Mutation::class, $builder->getQuery());
-       $this->assertInstanceOf(Mutation::class, $builder->getMutation());
+        $builder = new MutationBuilder('createObject');
+        $builder->selectField('field_one');
+        $this->assertInstanceOf(Mutation::class, $builder->getQuery());
+        $this->assertInstanceOf(Mutation::class, $builder->getMutation());
 
-       $expectedString = 'mutation {
+        $expectedString = 'mutation {
 createObject {
 field_one
 }
 }';
-       $this->assertEquals($expectedString, (string) $builder->getQuery());
-       $this->assertEquals($expectedString, (string) $builder->getMutation());
+        $this->assertEquals($expectedString, (string) $builder->getQuery());
+        $this->assertEquals($expectedString, (string) $builder->getMutation());
     }
 }

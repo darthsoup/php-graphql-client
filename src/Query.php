@@ -63,7 +63,9 @@ class Query extends NestableObject implements \Stringable
         $variablesToValidate = $variables;
         $nonVarElements = array_filter($variablesToValidate, fn($element) => !$element instanceof Variable);
         if (count($nonVarElements) > 0) {
-            throw new InvalidVariableException('At least one of the elements of the variables array provided is not an instance of GraphQL\\Variable');
+            throw new InvalidVariableException(
+                'At least one of the elements of the variables array provided is not an instance of GraphQL\\Variable'
+            );
         }
 
         $this->variables = $variables;
@@ -83,7 +85,8 @@ class Query extends NestableObject implements \Stringable
         $nonStringArgs = array_filter(array_keys($argumentsToValidate), fn($element) => !is_string($element));
         if (!empty($nonStringArgs)) {
             throw new ArgumentException(
-                'One or more of the arguments provided for creating the query does not have a key, which represents argument name'
+                'One or more of the arguments provided for creating the query does not have a key, '
+                . 'which represents argument name'
             );
         }
 

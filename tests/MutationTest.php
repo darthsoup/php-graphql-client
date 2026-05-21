@@ -50,7 +50,8 @@ createObject(name: "TestObject")
             'mutation {
 createObject(name: "TestObject" type: "TestType")
 }',
-            (string) $mutation);
+            (string) $mutation
+        );
     }
 
     #[Test]

@@ -52,7 +52,8 @@ field_one
     public function testSetAlias()
     {
         $builder = (new QueryBuilder('Object'))
-            ->setAlias('ObjectAlias');;
+            ->setAlias('ObjectAlias');
+        ;
         $builder->selectField('field_one');
         $this->assertEquals(
             'query {
@@ -164,15 +165,16 @@ some_field
     {
         $builder = (new QueryBuilder())
             ->selectField(
-            (new QueryBuilder('Object'))
+                (new QueryBuilder('Object'))
                 ->selectField('one')
-        )
+            )
             ->selectField(
                 (new QueryBuilder('Another'))
                     ->selectField('two')
             );
 
-        $this->assertEquals('query {
+        $this->assertEquals(
+            'query {
 Object {
 one
 }
@@ -180,7 +182,8 @@ Another {
 two
 }
 }',
-            (string) $builder->getQuery());
+            (string) $builder->getQuery()
+        );
     }
 
     #[Test]
@@ -247,12 +250,14 @@ field
         );
 
         $this->queryBuilder->setArgument('input_object_arg', new RawObject('{field_not: "x"}'));
+        $expectedQuery = 'query {' . "\n"
+            . 'Object(str_arg: "value" bool_arg: true int_arg: 10'
+            . ' array_arg: ["one", "two", "three"] input_object_arg: {field_not: "x"}) {' . "\n"
+            . 'field' . "\n"
+            . '}' . "\n"
+            . '}';
         $this->assertEquals(
-            'query {
-Object(str_arg: "value" bool_arg: true int_arg: 10 array_arg: ["one", "two", "three"] input_object_arg: {field_not: "x"}) {
-field
-}
-}',
+            $expectedQuery,
             (string) $this->queryBuilder->getQuery()
         );
     }

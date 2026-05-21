@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         name="PHP GraphQL Client"
+         xsi:noNamespaceSchemaLocation="vendor/squizlabs/php_codesniffer/phpcs.xsd">
+
+    <description>Coding standard for PHP GraphQL Client</description>
+
+    <arg value="p"/>
+
+    <file>src</file>
+    <file>tests</file>
+    <file>examples</file>
+
+    <rule ref="PSR12" />
+
+</ruleset>
