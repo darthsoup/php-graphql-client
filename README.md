@@ -1,42 +1,33 @@
 # PHP GraphQL Client
-![Build Status](https://github.com/mghoneimy/php-graphql-client/actions/workflows/php.yml/badge.svg)
-[![Total
-Downloads](https://poser.pugx.org/gmostafa/php-graphql-client/downloads)](https://packagist.org/packages/gmostafa/php-graphql-client)
-[![Latest Stable
-Version](https://poser.pugx.org/gmostafa/php-graphql-client/v/stable)](https://packagist.org/packages/gmostafa/php-graphql-client)
-[![License](https://poser.pugx.org/gmostafa/php-graphql-client/license)](https://packagist.org/packages/gmostafa/php-graphql-client)
 
-A GraphQL client written in PHP which provides very simple, yet powerful, query
-generator classes that make the process of interacting with a GraphQL server a
-very simple one.
+[![CI](https://img.shields.io/github/actions/workflow/status/darthsoup/php-graphql-client/php.yml?branch=main&label=CI&style=flat-square)](https://github.com/darthsoup/php-graphql-client/actions/workflows/php.yml)
+[![Latest Version](https://img.shields.io/packagist/v/darthsoup/php-graphql-client?style=flat-square)](https://packagist.org/packages/darthsoup/php-graphql-client)
+[![PHP Version](https://img.shields.io/packagist/php-v/darthsoup/php-graphql-client?style=flat-square)](https://packagist.org/packages/darthsoup/php-graphql-client)
+[![Total Downloads](https://img.shields.io/packagist/dt/darthsoup/php-graphql-client?style=flat-square)](https://packagist.org/packages/darthsoup/php-graphql-client)
+[![License](https://img.shields.io/packagist/l/darthsoup/php-graphql-client?style=flat-square)](https://packagist.org/packages/darthsoup/php-graphql-client)
 
-# Usage
+A PHP 8.3+ GraphQL client with a fluent query builder. Interact with any
+GraphQL API without writing raw query strings — compose type-safe queries and
+mutations in pure PHP, then run them against any GraphQL endpoint.
 
-There are 3 primary ways to use this package to generate your GraphQL queries:
+# Requirements
 
-1. Query Class: Simple class that maps to GraphQL queries. It's designed to
-   manipulate queries with ease and speed.
-2. QueryBuilder Class: Builder class that can be used to generate `Query`
-   objects dynamically. It's design to be used in cases where a query is being
-   build in a dynamic fashion.
-3. PHP GraphQL-OQM: An extension to this package. It Eliminates the need to
-   write any GraphQL queries or refer to the API documentation or syntax. It
-   generates query objects from the API schema, declaration exposed through
-   GraphQL's introspection, which can then be simply interacted with.
+- PHP **8.3** or higher
+- `ext-json`
+- A PSR-18 compatible HTTP client
 
 # Installation
 
-Run the following command to install the package using composer:
-
 ```
-$ composer require gmostafa/php-graphql-client
+composer require darthsoup/php-graphql-client
 ```
 
-# Object-to-Query-Mapper Extension
+# Usage
 
-To avoid the hassle of having to write _any_ queries and just interact with PHP
-objects generated from your API schema visit [PHP GraphQL OQM repository](
-https://github.com/mghoneimy/php-graphql-oqm)
+There are two primary ways to build GraphQL queries:
+
+1. **Query class** — direct, concise object representation of a GraphQL query.
+2. **QueryBuilder class** — fluent builder for constructing queries dynamically.
 
 # Query Examples
 
@@ -515,132 +506,17 @@ mutation($company: CompanyInputObject!) {
 {"company":{"name":"Tech Company","type":"Testing","size":"Medium"}}
 ```
 
-# Live API Example
+# Examples
 
-GraphQL Pokemon is a very cool public GraphQL API available to retrieve Pokemon
-data. The API is available publicly on the web, we'll use it to demo the
-capabilities of this client.
+Runnable examples for queries, mutations, the query builder, and raw queries
+can be found in the [`examples/`](examples/) directory:
 
-Github Repo link: https://github.com/lucasbento/graphql-pokemon
-
-API link: https://graphql-pokeapi.graphcdn.app/
-
-This query retrieves any pokemon's evolutions and their attacks:
-
-```php
-query($name: String!) {
-  pokemon(name: $name) {
-    id
-    number
-    name
-    evolutions {
-      id
-      number
-      name
-      weight {
-        minimum
-        maximum
-      }
-      attacks {
-        fast {
-          name
-          type
-          damage
-        }
-      }
-    }
-  }
-}
-
-```
-
-That's how this query can be written using the query class and run using the
-client:
-
-```php
-$client = new Client(
-    'https://graphql-pokeapi.graphcdn.app/'
-);
-$gql = (new Query('pokemon'))
-    ->setVariables([new Variable('name', 'String', true)])
-    ->setArguments(['name' => '$name'])
-    ->setSelectionSet(
-        [
-            'id',
-            'number',
-            'name',
-            (new Query('evolutions'))
-                ->setSelectionSet(
-                    [
-                        'id',
-                        'number',
-                        'name',
-                        (new Query('attacks'))
-                            ->setSelectionSet(
-                                [
-                                    (new Query('fast'))
-                                        ->setSelectionSet(
-                                            [
-                                                'name',
-                                                'type',
-                                                'damage',
-                                            ]
-                                        )
-                                ]
-                            )
-                    ]
-                )
-        ]
-    );
-try {
-    $name = readline('Enter pokemon name: ');
-    $results = $client->runQuery($gql, true, ['name' => $name]);
-}
-catch (QueryError $exception) {
-    print_r($exception->getErrorDetails());
-    exit;
-}
-print_r($results->getData()['pokemon']);
-```
-
-Or alternatively, That's how this query can be generated using the QueryBuilder
-class:
-
-```php
-$client = new Client(
-    'https://graphql-pokeapi.graphcdn.app/'
-);
-$builder = (new QueryBuilder('pokemon'))
-    ->setVariable('name', 'String', true)
-    ->setArgument('name', '$name')
-    ->selectField('id')
-    ->selectField('number')
-    ->selectField('name')
-    ->selectField(
-        (new QueryBuilder('evolutions'))
-            ->selectField('id')
-            ->selectField('name')
-            ->selectField('number')
-            ->selectField(
-                (new QueryBuilder('attacks'))
-                    ->selectField(
-                        (new QueryBuilder('fast'))
-                            ->selectField('name')
-                            ->selectField('type')
-                            ->selectField('damage')
-                    )
-            )
-    );
-try {
-    $name = readline('Enter pokemon name: ');
-    $results = $client->runQuery($builder, true, ['name' => $name]);
-}
-catch (QueryError $exception) {
-    print_r($exception->getErrorDetails());
-    exit;
-}
-print_r($results->getData()['pokemon']);
-```
+| File | Description |
+|------|-------------|
+| [`query_example.php`](examples/query_example.php) | Basic and nested queries |
+| [`query_builder_example.php`](examples/query_builder_example.php) | Building queries dynamically |
+| [`mutation_example.php`](examples/mutation_example.php) | Creating and running mutations |
+| [`raw_query_example.php`](examples/raw_query_example.php) | Running raw GraphQL strings |
 
 # Running Raw Queries
 
@@ -668,3 +544,13 @@ QUERY;
 
 $results = $client->runRawQuery($gql);
 ```
+
+# Contributing
+
+```bash
+composer install
+vendor/bin/phpunit          # run tests
+vendor/bin/phpstan analyse  # static analysis
+```
+
+Pull requests are welcome. Please ensure both commands pass before submitting.
