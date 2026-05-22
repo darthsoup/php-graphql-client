@@ -7,9 +7,9 @@ use GraphQL\Exception\MethodNotSupportedException;
 use GraphQL\Exception\QueryError;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\RawObject;
-use GuzzleHttp\Exception\ClientException;
+use GraphQL\Results;
+use GraphQL\Tests\Util\GuzzleAdapter;
 use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
@@ -17,6 +17,7 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\NetworkExceptionInterface;
 use TypeError;
 
 class ClientTest extends TestCase
@@ -29,37 +30,39 @@ class ClientTest extends TestCase
     {
         $this->mockHandler = new MockHandler();
         $handler = HandlerStack::create($this->mockHandler);
-        $this->client      = new Client('', [], ['handler' => $handler]);
+        $guzzle = new \GuzzleHttp\Client(['handler' => $handler]);
+        $this->client = new Client('', [], [], new GuzzleAdapter($guzzle));
     }
 
     #[Test]
-    public function testConstructClient()
+    public function testConstructClient(): void
     {
         $mockHandler = new MockHandler();
-        $handler     = HandlerStack::create($mockHandler);
-        $container   = [];
-        $history     = Middleware::history($container);
+        $handler = HandlerStack::create($mockHandler);
+        $container = [];
+        $history = Middleware::history($container);
         $handler->push($history);
 
-        $mockHandler->append(new Response(200));
-        $mockHandler->append(new Response(200));
-        $mockHandler->append(new Response(200));
-        $mockHandler->append(new Response(200));
-        $mockHandler->append(new Response(200));
+        $mockHandler->append(new Response(200, [], json_encode(['data' => null])));
+        $mockHandler->append(new Response(200, [], json_encode(['data' => null])));
+        $mockHandler->append(new Response(200, [], json_encode(['data' => null])));
+        $mockHandler->append(new Response(200, [], json_encode(['data' => null])));
 
-        $client = new Client('', [], ['handler' => $handler]);
+        $guzzle = new \GuzzleHttp\Client(['handler' => $handler]);
+        $psrClient = new GuzzleAdapter($guzzle);
+
+        $client = new Client('', [], [], $psrClient);
         $client->runRawQuery('query_string');
 
-        $client = new Client('', ['Authorization' => 'Basic xyz'], ['handler' => $handler]);
+        $client = new Client('', ['Authorization' => 'Basic xyz'], [], $psrClient);
         $client->runRawQuery('query_string');
 
-        $client = new Client('', [], ['handler' => $handler]);
+        $client = new Client('', [], [], $psrClient);
         $client->runRawQuery('query_string', false, ['name' => 'val']);
 
         $client = new Client('', ['Authorization' => 'Basic xyz'], [
-            'handler' => $handler,
             'headers' => ['Authorization' => 'Basic zyx', 'User-Agent' => 'test'],
-        ]);
+        ], $psrClient);
         $client->runRawQuery('query_string');
 
         /** @var Request $firstRequest */
@@ -67,19 +70,16 @@ class ClientTest extends TestCase
         $this->assertEquals('{"query":"query_string","variables":{}}', $firstRequest->getBody()->getContents());
         $this->assertSame('POST', $firstRequest->getMethod());
 
-        /** @var Request $thirdRequest */
-        $thirdRequest = $container[1]['request'];
-        $this->assertNotEmpty($thirdRequest->getHeader('Authorization'));
-        $this->assertEquals(
-            ['Basic xyz'],
-            $thirdRequest->getHeader('Authorization')
-        );
-
         /** @var Request $secondRequest */
-        $secondRequest = $container[2]['request'];
+        $secondRequest = $container[1]['request'];
+        $this->assertNotEmpty($secondRequest->getHeader('Authorization'));
+        $this->assertEquals(['Basic xyz'], $secondRequest->getHeader('Authorization'));
+
+        /** @var Request $thirdRequest */
+        $thirdRequest = $container[2]['request'];
         $this->assertEquals(
             '{"query":"query_string","variables":{"name":"val"}}',
-            $secondRequest->getBody()->getContents()
+            $thirdRequest->getBody()->getContents(),
         );
 
         /** @var Request $fourthRequest */
@@ -91,45 +91,33 @@ class ClientTest extends TestCase
     }
 
     #[Test]
-    public function testConstructClientWithGetRequestMethod()
+    public function testConstructClientWithGetRequestMethod(): void
     {
         $this->expectException(MethodNotSupportedException::class);
         new Client('', [], [], null, 'GET');
     }
 
     #[Test]
-    public function testRunQueryBuilder()
+    public function testRunQueryBuilder(): void
     {
-        $this->mockHandler->append(new Response(200, [], json_encode([
-            'data' => [
-                'someData'
-            ]
-        ])));
+        $this->mockHandler->append(new Response(200, [], json_encode(['data' => ['someData']])));
 
         $response = $this->client->runQuery((new QueryBuilder('obj'))->selectField('field'));
         $this->assertNotNull($response->getData());
     }
 
     #[Test]
-    public function testRunInvalidQueryClass()
+    public function testRunInvalidQueryClass(): void
     {
         $this->expectException(TypeError::class);
         $this->client->runQuery(new RawObject('obj'));
     }
 
     #[Test]
-    public function testValidQueryResponse()
+    public function testValidQueryResponse(): void
     {
         $this->mockHandler->append(new Response(200, [], json_encode([
-            'data' => [
-                'someField' => [
-                    [
-                        'data' => 'value',
-                    ], [
-                        'data' => 'value',
-                    ]
-                ]
-            ]
+            'data' => ['someField' => [['data' => 'value'], ['data' => 'value']]],
         ])));
 
         $objectResults = $this->client->runRawQuery('');
@@ -137,18 +125,10 @@ class ClientTest extends TestCase
     }
 
     #[Test]
-    public function testValidQueryResponseToArray()
+    public function testValidQueryResponseToArray(): void
     {
         $this->mockHandler->append(new Response(200, [], json_encode([
-            'data' => [
-                'someField' => [
-                    [
-                        'data' => 'value',
-                    ], [
-                        'data' => 'value',
-                    ]
-                ]
-            ]
+            'data' => ['someField' => [['data' => 'value'], ['data' => 'value']]],
         ])));
 
         $arrayResults = $this->client->runRawQuery('', true);
@@ -156,20 +136,10 @@ class ClientTest extends TestCase
     }
 
     #[Test]
-    public function testInvalidQueryResponseWith200()
+    public function testInvalidQueryResponseWith200(): void
     {
         $this->mockHandler->append(new Response(200, [], json_encode([
-            'errors' => [
-                [
-                    'message' => 'some syntax error',
-                    'location' => [
-                        [
-                            'line' => 1,
-                            'column' => 3,
-                        ]
-                    ],
-                ]
-            ]
+            'errors' => [['message' => 'some syntax error', 'location' => [['line' => 1, 'column' => 3]]]],
         ])));
 
         $this->expectException(QueryError::class);
@@ -177,66 +147,49 @@ class ClientTest extends TestCase
     }
 
     #[Test]
-    public function testInvalidQueryResponseWith400()
+    public function testInvalidQueryResponseWith400(): void
     {
-        $this->mockHandler->append(new ClientException(
-            '',
-            new Request('post', ''),
-            new Response(400, [], json_encode([
-                'errors' => [
-                    [
-                        'message' => 'some syntax error',
-                        'location' => [
-                            [
-                                'line' => 1,
-                                'column' => 3,
-                            ]
-                        ],
-                    ]
-                ]
-            ]))
-        ));
+        $this->mockHandler->append(new Response(400, [], json_encode([
+            'errors' => [['message' => 'some syntax error', 'location' => [['line' => 1, 'column' => 3]]]],
+        ])));
 
         $this->expectException(QueryError::class);
         $this->client->runRawQuery('');
     }
 
     #[Test]
-    public function testUnauthorizedResponse()
+    public function testUnauthorizedResponse(): void
     {
-        $this->mockHandler->append(new ClientException(
-            '',
-            new Request('post', ''),
-            new Response(401, [], json_encode('Unauthorized'))
-        ));
+        $this->mockHandler->append(new Response(401, [], json_encode(['data' => null])));
 
-        $this->expectException(ClientException::class);
-        $this->client->runRawQuery('');
+        $result = $this->client->runRawQuery('');
+        $this->assertInstanceOf(Results::class, $result);
     }
 
     #[Test]
-    public function testNotFoundResponse()
+    public function testNotFoundResponse(): void
     {
-        $this->mockHandler->append(new ClientException('', new Request('post', ''), new Response(404, [])));
+        $this->mockHandler->append(new Response(404, [], json_encode(['data' => null])));
 
-        $this->expectException(ClientException::class);
-        $this->client->runRawQuery('');
+        $result = $this->client->runRawQuery('');
+        $this->assertInstanceOf(Results::class, $result);
     }
 
     #[Test]
-    public function testInternalServerErrorResponse()
+    public function testInternalServerErrorResponse(): void
     {
-        $this->mockHandler->append(new ServerException('', new Request('post', ''), new Response(500, [])));
+        $this->mockHandler->append(new Response(500, [], json_encode(['data' => null])));
 
-        $this->expectException(ServerException::class);
-        $this->client->runRawQuery('');
+        $result = $this->client->runRawQuery('');
+        $this->assertInstanceOf(Results::class, $result);
     }
 
     #[Test]
-    public function testConnectTimeoutResponse()
+    public function testConnectTimeoutResponse(): void
     {
-        $this->mockHandler->append(new ConnectException('Time Out', new Request('post', '')));
-        $this->expectException(ConnectException::class);
+        $this->mockHandler->append(new ConnectException('Time Out', new Request('POST', '')));
+
+        $this->expectException(NetworkExceptionInterface::class);
         $this->client->runRawQuery('');
     }
 }

@@ -6,16 +6,18 @@ use GraphQL\Auth\AuthInterface;
 use GraphQL\Exception\MethodNotSupportedException;
 use GraphQL\Exception\QueryError;
 use GraphQL\QueryBuilder\QueryBuilderInterface;
-use GraphQL\Util\GuzzleAdapter;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Utils;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 
 class Client
 {
     protected string $endpointUrl;
     protected ClientInterface $httpClient;
+    protected RequestFactoryInterface $requestFactory;
+    protected StreamFactoryInterface $streamFactory;
 
     /** @var array<string, string> */
     protected array $httpHeaders;
@@ -28,7 +30,7 @@ class Client
 
     /**
      * @param array<string, string> $authorizationHeaders
-     * @param array<string, mixed> $httpOptions
+     * @param array<string, mixed> $httpOptions Only the 'headers' key is processed for request headers; other options are retained for auth integrations.
      */
     public function __construct(
         string $endpointUrl,
@@ -36,7 +38,9 @@ class Client
         array $httpOptions = [],
         ?ClientInterface $httpClient = null,
         string $requestMethod = 'POST',
-        ?AuthInterface $auth = null
+        ?AuthInterface $auth = null,
+        ?RequestFactoryInterface $requestFactory = null,
+        ?StreamFactoryInterface $streamFactory = null,
     ) {
         $optionHeaders = [];
         if (isset($httpOptions['headers']) && is_array($httpOptions['headers'])) {
@@ -47,18 +51,20 @@ class Client
             }
         }
 
-        $headers = array_merge(
+        $this->httpHeaders = array_merge(
             $authorizationHeaders,
             $optionHeaders,
-            ['Content-Type' => 'application/json']
+            ['Content-Type' => 'application/json'],
         );
 
         unset($httpOptions['headers']);
+
         $this->options = $httpOptions;
-        $this->auth = $auth;
         $this->endpointUrl = $endpointUrl;
-        $this->httpClient = $httpClient ?? new GuzzleAdapter(new \GuzzleHttp\Client($httpOptions));
-        $this->httpHeaders = $headers;
+        $this->httpClient = $httpClient ?? Psr18ClientDiscovery::find();
+        $this->requestFactory = $requestFactory ?? Psr17FactoryDiscovery::findRequestFactory();
+        $this->streamFactory = $streamFactory ?? Psr17FactoryDiscovery::findStreamFactory();
+        $this->auth = $auth;
 
         if ($requestMethod !== 'POST') {
             throw new MethodNotSupportedException($requestMethod);
@@ -91,7 +97,7 @@ class Client
      */
     public function runRawQuery(string $queryString, bool $resultsAsArray = false, array $variables = []): Results
     {
-        $request = new Request($this->requestMethod, $this->endpointUrl);
+        $request = $this->requestFactory->createRequest($this->requestMethod, $this->endpointUrl);
 
         foreach ($this->httpHeaders as $header => $value) {
             $request = $request->withHeader($header, $value);
@@ -99,24 +105,14 @@ class Client
 
         $payloadVariables = $variables === [] ? (object) null : $variables;
         $bodyArray = ['query' => $queryString, 'variables' => $payloadVariables];
-        $encodedBody = json_encode($bodyArray);
-        if ($encodedBody === false) {
-            $encodedBody = '';
-        }
-        $request = $request->withBody(Utils::streamFor($encodedBody));
+        $encodedBody = json_encode($bodyArray) ?: '';
+        $request = $request->withBody($this->streamFactory->createStream($encodedBody));
 
         if ($this->auth !== null) {
             $request = $this->auth->run($request, $this->options);
         }
 
-        try {
-            $response = $this->httpClient->sendRequest($request);
-        } catch (ClientException $exception) {
-            $response = $exception->getResponse();
-            if ($response->getStatusCode() !== 400) {
-                throw $exception;
-            }
-        }
+        $response = $this->httpClient->sendRequest($request);
 
         return new Results($response, $resultsAsArray);
     }

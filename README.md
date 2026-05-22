@@ -373,45 +373,32 @@ $client = new Client(
 ```
 
 
-The Client constructor also receives an optional "httpOptions" array, which
-**overrides** the "authorizationHeaders" and can be used to add custom
-[Guzzle HTTP Client request options](https://guzzle.readthedocs.io/en/latest/request-options.html).
-
-Example:
+The third argument accepts an `httpOptions` array. Only the `headers` key is
+processed — it is merged with `authorizationHeaders`:
 
 ```php
 $client = new Client(
     'http://api.graphql.com',
     [],
-    [ 
-        'connect_timeout' => 5,
-        'timeout' => 5,
+    [
         'headers' => [
-            'Authorization' => 'Basic xyz'
-            'User-Agent' => 'testing/1.0',
+            'Authorization' => 'Basic xyz',
+            'User-Agent'    => 'my-app/1.0',
         ],
-        'proxy' => [
-                'http'  => 'tcp://localhost:8125', // Use this proxy with "http"
-                'https' => 'tcp://localhost:9124', // Use this proxy with "https",
-                'no' => ['.mit.edu', 'foo.com']    // Don't use a proxy with these
-        ],
-        'cert' => ['/path/server.pem', 'password']
-        ...
     ]
 );
 ```
 
-
-It is possible to use your own preconfigured HTTP client that implements the [PSR-18 interface](https://www.php-fig.org/psr/psr-18/).
-
-Example:
+You can also inject your own preconfigured [PSR-18](https://www.php-fig.org/psr/psr-18/)
+HTTP client as the fourth argument. The client uses `php-http/discovery` to
+auto-discover one when none is provided:
 
 ```php
 $client = new Client(
     'http://api.graphql.com',
     [],
     [],
-    $myHttpClient
+    $myPsr18HttpClient
 );
 ```
 
@@ -543,6 +530,84 @@ query {
 QUERY;
 
 $results = $client->runRawQuery($gql);
+```
+
+# Laravel Integration
+
+The package has no Laravel-specific code, but you can wire it into the service
+container with a simple service provider.
+
+## Service Provider
+
+```php
+<?php
+
+namespace App\Providers;
+
+use GraphQL\Client;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\ServiceProvider;
+
+class GraphQLServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $this->app->singleton(Client::class, function (Application $app): Client {
+            return new Client(
+                config('graphql.endpoint'),
+                ['Authorization' => 'Bearer ' . config('graphql.token')],
+            );
+        });
+    }
+}
+```
+
+Register it in `bootstrap/providers.php`:
+
+```php
+return [
+    // ...
+    App\Providers\GraphQLServiceProvider::class,
+];
+```
+
+Add a `config/graphql.php` file:
+
+```php
+<?php
+
+return [
+    'endpoint' => env('GRAPHQL_ENDPOINT', 'https://api.example.com/graphql'),
+    'token'    => env('GRAPHQL_TOKEN'),
+];
+```
+
+## Usage
+
+Resolve the client via dependency injection:
+
+```php
+use GraphQL\Client;
+use GraphQL\Query;
+
+class CompanyController extends Controller
+{
+    public function __construct(private readonly Client $graphql) {}
+
+    public function index(): array
+    {
+        $gql = (new Query('companies'))
+            ->setSelectionSet(['name', 'serialNumber']);
+
+        return $this->graphql->runQuery($gql, true)->getData();
+    }
+}
+```
+
+Or resolve it from the container directly:
+
+```php
+$client = app(GraphQL\Client::class);
 ```
 
 # Contributing
