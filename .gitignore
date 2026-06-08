@@ -2,6 +2,7 @@
 .idea/
 local_*/
 .phpunit.result.cache
+.phpunit.cache/
 /build/
 composer.lock
 .phpcs-cache

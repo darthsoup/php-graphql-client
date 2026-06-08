@@ -49,7 +49,9 @@
         "guzzlehttp/psr7": "< 1.7.0"
     },
     "scripts": {
-        "test": "phpunit tests/ --whitelist src/ --coverage-clover build/coverage/xml",
+        "test": "phpunit --testsuite Unit",
+        "test:unit": "phpunit --testsuite Unit",
+        "test:integration": "phpunit --testsuite Integration",
         "phpstan": "phpstan analyse"
     },
     "suggest": {

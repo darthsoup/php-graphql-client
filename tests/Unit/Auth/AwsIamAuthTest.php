@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\Tests\Unit\Auth;
 
 use GraphQL\Auth\AwsIamAuth;
 use GraphQL\Exception\AwsRegionNotSetException;
 use GuzzleHttp\Psr7\Request;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class AwsIamAuthTest extends TestCase
+#[CoversClass(AwsIamAuth::class)]
+final class AwsIamAuthTest extends TestCase
 {
     protected AwsIamAuth $auth;
 
@@ -18,7 +22,7 @@ class AwsIamAuthTest extends TestCase
     }
 
     #[Test]
-    public function testRunMissingRegion()
+    public function testRunMissingRegion(): void
     {
         $this->expectException(AwsRegionNotSetException::class);
         $request = new Request('POST', '');
@@ -26,9 +30,9 @@ class AwsIamAuthTest extends TestCase
     }
 
     #[Test]
-    public function testRunSuccess(): never
+    public function testRunSuccess(): void
     {
-        $this->markTestIncomplete('AWS skip');
+        self::markTestSkipped('Requires live AWS credentials');
 
         $request = $this->auth->run(
             new Request('POST', ''),

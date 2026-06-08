@@ -1,17 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\Tests\Unit;
 
 use GraphQL\InlineFragment;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class InlineFragmentTest extends TestCase
+#[CoversClass(InlineFragment::class)]
+final class InlineFragmentTest extends TestCase
 {
     #[Test]
-    public function testConvertToString()
+    public function testConvertToString(): void
     {
         $fragment = new InlineFragment('Test');
         $fragment->setSelectionSet(
@@ -21,7 +25,7 @@ class InlineFragmentTest extends TestCase
             ]
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             '... on Test {
 field1
 field2
@@ -31,7 +35,7 @@ field2
     }
 
     #[Test]
-    public function testConvertNestedFragmentToString()
+    public function testConvertNestedFragmentToString(): void
     {
         $fragment = new InlineFragment('Test');
         $fragment->setSelectionSet(
@@ -58,7 +62,7 @@ field2
             ]
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             '... on Test {
 field1
 field2
@@ -74,7 +78,7 @@ another_field
     }
 
     #[Test]
-    public function testConvertQueryBuilderToString()
+    public function testConvertQueryBuilderToString(): void
     {
         $queryBuilder = new QueryBuilder();
 
@@ -82,7 +86,7 @@ another_field
         $queryBuilder->selectField('field1');
         $queryBuilder->selectField('field2');
 
-        $this->assertEquals(
+        $this->assertSame(
             '... on Test {
 field1
 field2

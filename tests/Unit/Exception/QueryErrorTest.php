@@ -1,15 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\Tests\Unit\Exception;
 
 use GraphQL\Exception\QueryError;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class QueryErrorTest extends TestCase
+#[CoversClass(QueryError::class)]
+final class QueryErrorTest extends TestCase
 {
     #[Test]
-    public function testConstructQueryError()
+    public function testConstructQueryError(): void
     {
         $exceptionMessage = 'some syntax error';
         $errorData = [
@@ -27,7 +31,7 @@ class QueryErrorTest extends TestCase
         ];
 
         $queryError = new QueryError($errorData);
-        $this->assertEquals($exceptionMessage, $queryError->getMessage());
+        $this->assertSame($exceptionMessage, $queryError->getMessage());
         $this->assertEquals(
             [
                 'message' => 'some syntax error',

@@ -1,13 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\Tests\Unit\QueryBuilder;
 
 use GraphQL\Mutation;
 use GraphQL\QueryBuilder\MutationBuilder;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class MutationBuilderTest extends TestCase
+#[CoversClass(MutationBuilder::class)]
+final class MutationBuilderTest extends TestCase
 {
     protected MutationBuilder $mutationBuilder;
 
@@ -17,7 +21,7 @@ class MutationBuilderTest extends TestCase
     }
 
     #[Test]
-    public function testConstruct()
+    public function testConstruct(): void
     {
         $builder = new MutationBuilder('createObject');
         $builder->selectField('field_one');
@@ -29,7 +33,7 @@ createObject {
 field_one
 }
 }';
-        $this->assertEquals($expectedString, (string) $builder->getQuery());
-        $this->assertEquals($expectedString, (string) $builder->getMutation());
+        $this->assertSame($expectedString, (string) $builder->getQuery());
+        $this->assertSame($expectedString, (string) $builder->getMutation());
     }
 }

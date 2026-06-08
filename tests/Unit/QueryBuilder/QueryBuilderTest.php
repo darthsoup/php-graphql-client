@@ -1,29 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\Tests\Unit\QueryBuilder;
 
 use GraphQL\InlineFragment;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\RawObject;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class QueryBuilderTest extends TestCase
+#[CoversClass(QueryBuilder::class)]
+final class QueryBuilderTest extends TestCase
 {
     protected QueryBuilder $queryBuilder;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->queryBuilder = new QueryBuilder('Object');
     }
 
     #[Test]
-    public function testConstruct()
+    public function testConstruct(): void
     {
         $builder = new QueryBuilder('Object');
         $builder->selectField('field_one');
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object {
 field_one
@@ -34,11 +38,11 @@ field_one
     }
 
     #[Test]
-    public function testConstructWithAlias()
+    public function testConstructWithAlias(): void
     {
         $builder = new QueryBuilder('Object', 'ObjectAlias');
         $builder->selectField('field_one');
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 ObjectAlias: Object {
 field_one
@@ -49,13 +53,13 @@ field_one
     }
 
     #[Test]
-    public function testSetAlias()
+    public function testSetAlias(): void
     {
         $builder = (new QueryBuilder('Object'))
             ->setAlias('ObjectAlias');
         ;
         $builder->selectField('field_one');
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 ObjectAlias: Object {
 field_one
@@ -66,13 +70,13 @@ field_one
     }
 
     #[Test]
-    public function testAddVariables()
+    public function testAddVariables(): void
     {
         $this->queryBuilder
             ->setVariable('var', 'String')
             ->setVariable('intVar', 'Int', false, 4)
             ->selectField('fieldOne');
-        $this->assertEquals(
+        $this->assertSame(
             'query($var: String $intVar: Int=4) {
 Object {
 fieldOne
@@ -83,7 +87,7 @@ fieldOne
     }
 
     #[Test]
-    public function testAddVariablesToSecondLevelQueryDoesNothing()
+    public function testAddVariablesToSecondLevelQueryDoesNothing(): void
     {
         $this->queryBuilder
             ->setVariable('var', 'String')
@@ -93,7 +97,7 @@ fieldOne
                     ->setVariable('var', 'String')
                     ->selectField('fieldTwo')
             );
-        $this->assertEquals(
+        $this->assertSame(
             'query($var: String) {
 Object {
 fieldOne
@@ -107,11 +111,11 @@ fieldTwo
     }
 
     #[Test]
-    public function testSelectScalarFields()
+    public function testSelectScalarFields(): void
     {
         $this->queryBuilder->selectField('field_one');
         $this->queryBuilder->selectField('field_two');
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object {
 field_one
@@ -123,13 +127,13 @@ field_two
     }
 
     #[Test]
-    public function testSelectNestedQuery()
+    public function testSelectNestedQuery(): void
     {
         $this->queryBuilder->selectField(
             (new Query('Nested'))
                 ->setSelectionSet(['some_field'])
         );
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object {
 Nested {
@@ -142,13 +146,13 @@ some_field
     }
 
     #[Test]
-    public function testSelectNestedQueryBuilder()
+    public function testSelectNestedQueryBuilder(): void
     {
         $this->queryBuilder->selectField(
             (new QueryBuilder('Nested'))
                 ->selectField('some_field')
         );
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object {
 Nested {
@@ -161,7 +165,7 @@ some_field
     }
 
     #[Test]
-    public function testQueryBuilderWithoutFieldName()
+    public function testQueryBuilderWithoutFieldName(): void
     {
         $builder = (new QueryBuilder())
             ->selectField(
@@ -173,7 +177,7 @@ some_field
                     ->selectField('two')
             );
 
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object {
 one
@@ -187,13 +191,13 @@ two
     }
 
     #[Test]
-    public function testSelectInlineFragment()
+    public function testSelectInlineFragment(): void
     {
         $this->queryBuilder->selectField(
             (new InlineFragment('Type'))
                 ->setSelectionSet(['field'])
         );
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object {
 ... on Type {
@@ -206,11 +210,11 @@ field
     }
 
     #[Test]
-    public function testSelectArguments()
+    public function testSelectArguments(): void
     {
         $this->queryBuilder->selectField('field');
         $this->queryBuilder->setArgument('str_arg', 'value');
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object(str_arg: "value") {
 field
@@ -220,7 +224,7 @@ field
         );
 
         $this->queryBuilder->setArgument('bool_arg', true);
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object(str_arg: "value" bool_arg: true) {
 field
@@ -230,7 +234,7 @@ field
         );
 
         $this->queryBuilder->setArgument('int_arg', 10);
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object(str_arg: "value" bool_arg: true int_arg: 10) {
 field
@@ -240,7 +244,7 @@ field
         );
 
         $this->queryBuilder->setArgument('array_arg', ['one', 'two', 'three']);
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object(str_arg: "value" bool_arg: true int_arg: 10 array_arg: ["one", "two", "three"]) {
 field
@@ -256,14 +260,14 @@ field
             . 'field' . "\n"
             . '}' . "\n"
             . '}';
-        $this->assertEquals(
+        $this->assertSame(
             $expectedQuery,
             (string) $this->queryBuilder->getQuery()
         );
     }
 
     #[Test]
-    public function testSetTwoLevelArguments()
+    public function testSetTwoLevelArguments(): void
     {
         $this->queryBuilder->selectField(
             (new QueryBuilder('Nested'))
@@ -272,7 +276,7 @@ field
                 ->setArgument('nested_arg', [1, 2, 3])
         )
         ->setArgument('outer_arg', 'outer val');
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object(outer_arg: "outer val") {
 Nested(nested_arg: [1, 2, 3]) {

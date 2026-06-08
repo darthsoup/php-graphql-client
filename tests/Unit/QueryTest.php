@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\Tests\Unit;
 
 use GraphQL\Exception\ArgumentException;
@@ -9,18 +11,17 @@ use GraphQL\InlineFragment;
 use GraphQL\Query;
 use GraphQL\RawObject;
 use GraphQL\Variable;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\DependsUsingDeepClone;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class QueryTest extends TestCase
+#[CoversClass(Query::class)]
+final class QueryTest extends TestCase
 {
-    /**
-     * @return Query
-     */
     #[Test]
-    public function testConvertsToString()
+    public function testConvertsToString(): Query
     {
         $query = new Query('Object');
         $this->assertIsString((string) $query, 'Failed to convert query to string');
@@ -28,12 +29,9 @@ class QueryTest extends TestCase
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[Depends('testConvertsToString')]
-    public function testEmptyArguments(Query $query)
+    public function testEmptyArguments(Query $query): Query
     {
         $this->assertStringNotContainsString("()", (string) $query, 'Query has empty arguments list');
 
@@ -41,11 +39,11 @@ class QueryTest extends TestCase
     }
 
     #[Test]
-    public function testQueryWithoutFieldName()
+    public function testQueryWithoutFieldName(): void
     {
         $query = new Query();
 
-        $this->assertEquals(
+        $this->assertSame(
             "query",
             (string) $query
         );
@@ -59,7 +57,7 @@ class QueryTest extends TestCase
             ]
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object {
 one
@@ -74,14 +72,14 @@ two
 
     #[Test]
     #[Depends('testConvertsToString')]
-    public function testQueryWithAlias()
+    public function testQueryWithAlias(): void
     {
         $query = (new Query('Object', 'ObjectAlias'))
             ->setSelectionSet([
                 'one'
             ]);
 
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 ObjectAlias: Object {
 one
@@ -93,7 +91,7 @@ one
 
     #[Test]
     #[Depends('testConvertsToString')]
-    public function testQueryWithSetAlias()
+    public function testQueryWithSetAlias(): void
     {
         $query = (new Query('Object'))
             ->setAlias('ObjectAlias')
@@ -101,7 +99,7 @@ one
                 'one'
             ]);
 
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 ObjectAlias: Object {
 one
@@ -113,11 +111,11 @@ one
 
     #[Test]
     #[Depends('testConvertsToString')]
-    public function testQueryWithOperationName()
+    public function testQueryWithOperationName(): void
     {
         $query = (new Query('Object'))
             ->setOperationName('retrieveObject');
-        $this->assertEquals(
+        $this->assertSame(
             'query retrieveObject {
 Object
 }',
@@ -128,12 +126,12 @@ Object
     #[Test]
     #[Depends('testQueryWithoutFieldName')]
     #[Depends('testQueryWithOperationName')]
-    public function testQueryWithOperationNameAndOperationType()
+    public function testQueryWithOperationNameAndOperationType(): void
     {
         $query = (new Query())
             ->setOperationName('retrieveObject')
             ->setSelectionSet([new Query('Object')]);
-        $this->assertEquals(
+        $this->assertSame(
             'query retrieveObject {
 Object
 }',
@@ -143,12 +141,12 @@ Object
 
     #[Test]
     #[Depends('testQueryWithOperationName')]
-    public function testQueryWithOperationNameInSecondLevelDoesNothing()
+    public function testQueryWithOperationNameInSecondLevelDoesNothing(): void
     {
         $query = (new Query('Object'))
             ->setOperationName('retrieveObject')
             ->setSelectionSet([(new Query('Nested'))->setOperationName('opName')]);
-        $this->assertEquals(
+        $this->assertSame(
             'query retrieveObject {
 Object {
 Nested
@@ -159,7 +157,7 @@ Nested
     }
 
     #[Test]
-    public function testSetVariablesWithoutVariableObjects()
+    public function testSetVariablesWithoutVariableObjects(): void
     {
         $this->expectException(InvalidVariableException::class);
         (new Query('Object'))->setVariables(['one', 'two']);
@@ -167,11 +165,11 @@ Nested
 
     #[Test]
     #[Depends('testConvertsToString')]
-    public function testQueryWithOneVariable()
+    public function testQueryWithOneVariable(): void
     {
         $query = (new Query('Object'))
             ->setVariables([new Variable('var', 'String')]);
-        $this->assertEquals(
+        $this->assertSame(
             'query($var: String) {
 Object
 }',
@@ -181,11 +179,11 @@ Object
 
     #[Test]
     #[Depends('testQueryWithOneVariable')]
-    public function testQueryWithMultipleVariables()
+    public function testQueryWithMultipleVariables(): void
     {
         $query = (new Query('Object'))
             ->setVariables([new Variable('var', 'String'), new Variable('intVar', 'Int', false, 4)]);
-        $this->assertEquals(
+        $this->assertSame(
             'query($var: String $intVar: Int=4) {
 Object
 }',
@@ -195,13 +193,13 @@ Object
 
     #[Test]
     #[Depends('testConvertsToString')]
-    public function testQueryWithVariablesInSecondLevelDoesNothing()
+    public function testQueryWithVariablesInSecondLevelDoesNothing(): void
     {
         $query = (new Query('Object'))
             ->setVariables([new Variable('var', 'String'), new Variable('intVar', 'Int', false, 4)])
             ->setSelectionSet([(new Query('Nested'))])
             ->setVariables([new Variable('var', 'String'), new Variable('intVar', 'Int', false, 4)]);
-        $this->assertEquals(
+        $this->assertSame(
             'query($var: String $intVar: Int=4) {
 Object {
 Nested
@@ -214,12 +212,12 @@ Nested
     #[Test]
     #[Depends('testQueryWithMultipleVariables')]
     #[Depends('testQueryWithOperationName')]
-    public function testQueryWithOperationNameAndVariables()
+    public function testQueryWithOperationNameAndVariables(): void
     {
         $query = (new Query('Object'))
             ->setOperationName('retrieveObject')
             ->setVariables([new Variable('var', 'String')]);
-        $this->assertEquals(
+        $this->assertSame(
             'query retrieveObject($var: String) {
 Object
 }',
@@ -227,14 +225,11 @@ Object
         );
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyArguments')]
-    public function testEmptyQuery(Query $query)
+    public function testEmptyQuery(Query $query): Query
     {
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object
 }",
@@ -245,12 +240,9 @@ Object
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyArguments')]
-    public function testArgumentWithoutName(Query $query)
+    public function testArgumentWithoutName(Query $query): Query
     {
         $this->expectException(ArgumentException::class);
         $query->setArguments(['val']);
@@ -258,15 +250,12 @@ Object
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyArguments')]
-    public function testStringArgumentValue(Query $query)
+    public function testStringArgumentValue(Query $query): Query
     {
         $query->setArguments(['arg1' => 'value']);
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object(arg1: \"value\")
 }",
@@ -277,15 +266,12 @@ Object(arg1: \"value\")
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyArguments')]
-    public function testIntegerArgumentValue(Query $query)
+    public function testIntegerArgumentValue(Query $query): Query
     {
         $query->setArguments(['arg1' => 23]);
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object(arg1: 23)
 }",
@@ -295,15 +281,12 @@ Object(arg1: 23)
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyArguments')]
-    public function testBooleanArgumentValue(Query $query)
+    public function testBooleanArgumentValue(Query $query): Query
     {
         $query->setArguments(['arg1' => true]);
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object(arg1: true)
 }",
@@ -313,15 +296,12 @@ Object(arg1: true)
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyArguments')]
-    public function testNullArgumentValue(Query $query)
+    public function testNullArgumentValue(Query $query): Query
     {
         $query->setArguments(['arg1' => null]);
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object(arg1: null)
 }",
@@ -331,15 +311,12 @@ Object(arg1: null)
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyArguments')]
-    public function testArrayIntegerArgumentValue(Query $query)
+    public function testArrayIntegerArgumentValue(Query $query): Query
     {
         $query->setArguments(['arg1' => [1, 2, 3]]);
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object(arg1: [1, 2, 3])
 }",
@@ -349,15 +326,12 @@ Object(arg1: [1, 2, 3])
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyArguments')]
-    public function testJsonObjectArgumentValue(Query $query)
+    public function testJsonObjectArgumentValue(Query $query): Query
     {
         $query->setArguments(['obj' => new RawObject('{json_string_array: ["json value"]}')]);
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object(obj: {json_string_array: [\"json value\"]})
 }",
@@ -367,15 +341,12 @@ Object(obj: {json_string_array: [\"json value\"]})
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyArguments')]
-    public function testArrayStringArgumentValue(Query $query)
+    public function testArrayStringArgumentValue(Query $query): Query
     {
         $query->setArguments(['arg1' => ['one', 'two', 'three']]);
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object(arg1: [\"one\", \"two\", \"three\"])
 }",
@@ -385,17 +356,14 @@ Object(arg1: [\"one\", \"two\", \"three\"])
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testStringArgumentValue')]
     #[Depends('testIntegerArgumentValue')]
     #[Depends('testBooleanArgumentValue')]
-    public function testTwoOrMoreArguments(Query $query)
+    public function testTwoOrMoreArguments(Query $query): Query
     {
         $query->setArguments(['arg1' => 'val1', 'arg2' => 2, 'arg3' => true]);
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object(arg1: \"val1\" arg2: 2 arg3: true)
 }",
@@ -408,7 +376,7 @@ Object(arg1: \"val1\" arg2: 2 arg3: true)
 
     #[Test]
     #[Depends('testStringArgumentValue')]
-    public function testStringWrappingWorks()
+    public function testStringWrappingWorks(): void
     {
         // TODO: Remove this in v1.0 release
         $queryWrapped = new Query('Object');
@@ -417,18 +385,15 @@ Object(arg1: \"val1\" arg2: 2 arg3: true)
         $queryNotWrapped = new Query('Object');
         $queryNotWrapped->setArguments(['arg1' => 'val']);
 
-        $this->assertEquals((string) $queryWrapped, (string) $queryWrapped);
+        $this->assertSame((string) $queryWrapped, (string) $queryWrapped);
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyQuery')]
-    public function testSingleSelectionField(Query $query)
+    public function testSingleSelectionField(Query $query): Query
     {
         $query->setSelectionSet(['field1']);
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object {
 field1
@@ -441,15 +406,12 @@ field1
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyQuery')]
-    public function testTwoOrMoreSelectionFields(Query $query)
+    public function testTwoOrMoreSelectionFields(Query $query): Query
     {
         $query->setSelectionSet(['field1', 'field2']);
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object {
 field1
@@ -463,12 +425,9 @@ field2
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyQuery')]
-    public function testSelectNonStringValues(Query $query)
+    public function testSelectNonStringValues(Query $query): Query
     {
         $this->expectException(InvalidSelectionException::class);
         $query->setSelectionSet([true, 1.5]);
@@ -476,16 +435,13 @@ field2
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testEmptyQuery')]
-    public function testOneLevelQuery(Query $query)
+    public function testOneLevelQuery(Query $query): Query
     {
         $query->setSelectionSet(['field1', 'field2']);
         $query->setArguments(['arg1' => 'val1', 'arg2' => 'val2']);
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object(arg1: \"val1\" arg2: \"val2\") {
 field1
@@ -499,12 +455,9 @@ field2
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testOneLevelQuery')]
-    public function testTwoLevelQueryDoesNotContainWordQuery(Query $query)
+    public function testTwoLevelQueryDoesNotContainWordQuery(Query $query): Query
     {
         $query->setSelectionSet(
             [
@@ -523,12 +476,9 @@ field2
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testTwoLevelQueryDoesNotContainWordQuery')]
-    public function testTwoLevelQuery(Query $query)
+    public function testTwoLevelQuery(Query $query): Query
     {
         $query->setSelectionSet(
             [
@@ -538,7 +488,7 @@ field2
                     ->setSelectionSet(['field3'])
             ]
         );
-        $this->assertEquals(
+        $this->assertSame(
             "query {
 Object(arg1: \"val1\" arg2: \"val2\") {
 field1
@@ -555,12 +505,9 @@ field3
         return $query;
     }
 
-    /**
-     * @return Query
-     */
     #[Test]
     #[DependsUsingDeepClone('testTwoLevelQueryDoesNotContainWordQuery')]
-    public function testTwoLevelQueryWithInlineFragment(Query $query)
+    public function testTwoLevelQueryWithInlineFragment(Query $query): Query
     {
         $query->setSelectionSet(
             [
@@ -574,7 +521,7 @@ field3
                     ),
             ]
         );
-        $this->assertEquals(
+        $this->assertSame(
             'query {
 Object(arg1: "val1" arg2: "val2") {
 field1
