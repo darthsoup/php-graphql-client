@@ -1,16 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\Tests\Integration;
 
 use GraphQL\Client;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 #[Group('integration')]
-class ClientIntegrationTest extends TestCase
+#[CoversNothing]
+final class ClientIntegrationTest extends TestCase
 {
     private const string ENDPOINT = 'https://graphql-pokeapi.graphcdn.app/';
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\Tests\Unit;
 
 use GraphQL\Exception\QueryError;
@@ -7,11 +9,13 @@ use GraphQL\Results;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
-class ResultsTest extends TestCase
+#[CoversClass(Results::class)]
+final class ResultsTest extends TestCase
 {
     protected Client $client;
 
@@ -24,7 +28,7 @@ class ResultsTest extends TestCase
     }
 
     #[Test]
-    public function testGetSuccessResponseAsObject()
+    public function testGetSuccessResponseAsObject(): void
     {
         $body = json_encode([
             'data' => [
@@ -45,7 +49,7 @@ class ResultsTest extends TestCase
         $results  = new Results($response);
 
         $this->assertEquals($response, $results->getResponseObject());
-        $this->assertEquals($body, $results->getResponseBody());
+        $this->assertSame($body, $results->getResponseBody());
 
         $object = new stdClass();
         $object->data = new stdClass();
@@ -65,7 +69,7 @@ class ResultsTest extends TestCase
     }
 
     #[Test]
-    public function testGetSuccessResponseAsArray()
+    public function testGetSuccessResponseAsArray(): void
     {
         $body = json_encode([
             'data' => [
@@ -86,7 +90,7 @@ class ResultsTest extends TestCase
         $results  = new Results($response, true);
 
         $this->assertEquals($originalResponse, $results->getResponseObject());
-        $this->assertEquals($body, $results->getResponseBody());
+        $this->assertSame($body, $results->getResponseBody());
         $this->assertEquals(
             [
                 'data' => [
@@ -118,7 +122,7 @@ class ResultsTest extends TestCase
     }
 
     #[Test]
-    public function testGetQueryInvalidSyntaxError()
+    public function testGetQueryInvalidSyntaxError(): void
     {
         $body = json_encode([
             'errors' => [
@@ -142,7 +146,7 @@ class ResultsTest extends TestCase
     }
 
     #[Test]
-    public function testReformatResultsFromObjectToArray()
+    public function testReformatResultsFromObjectToArray(): void
     {
         $body = json_encode([
             'data' => [
@@ -194,7 +198,7 @@ class ResultsTest extends TestCase
     }
 
     #[Test]
-    public function testReformatResultsFromArrayToObject()
+    public function testReformatResultsFromArrayToObject(): void
     {
         $body = json_encode([
             'data' => [

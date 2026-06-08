@@ -1,110 +1,114 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\Tests\Unit\Util;
 
 use GraphQL\Util\StringLiteralFormatter;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class StringLiteralFormatterTest extends TestCase
+#[CoversClass(StringLiteralFormatter::class)]
+final class StringLiteralFormatterTest extends TestCase
 {
     #[Test]
-    public function testFormatForClassRHSValue()
+    public function testFormatForClassRHSValue(): void
     {
         // Null test
         $nullString = StringLiteralFormatter::formatValueForRHS(null);
-        $this->assertEquals('null', $nullString);
+        $this->assertSame('null', $nullString);
 
         // String tests
         $emptyString = StringLiteralFormatter::formatValueForRHS('');
-        $this->assertEquals('""', $emptyString);
+        $this->assertSame('""', $emptyString);
 
         $formattedString = StringLiteralFormatter::formatValueForRHS('someString');
-        $this->assertEquals('"someString"', $formattedString);
+        $this->assertSame('"someString"', $formattedString);
 
         $formattedString = StringLiteralFormatter::formatValueForRHS('"quotedString"');
-        $this->assertEquals('"\"quotedString\""', $formattedString);
+        $this->assertSame('"\"quotedString\""', $formattedString);
 
         $formattedString = StringLiteralFormatter::formatValueForRHS("\"quotedString\"");
-        $this->assertEquals('"\"quotedString\""', $formattedString);
+        $this->assertSame('"\"quotedString\""', $formattedString);
 
         $formattedString = StringLiteralFormatter::formatValueForRHS('\'singleQuotes\'');
-        $this->assertEquals('"\'singleQuotes\'"', $formattedString);
+        $this->assertSame('"\'singleQuotes\'"', $formattedString);
 
         $formattedString = StringLiteralFormatter::formatValueForRHS("with \n newlines");
-        $this->assertEquals("\"\"\"with \n newlines\"\"\"", $formattedString);
+        $this->assertSame("\"\"\"with \n newlines\"\"\"", $formattedString);
 
         $formattedString = StringLiteralFormatter::formatValueForRHS('$var');
-        $this->assertEquals('$var', $formattedString);
+        $this->assertSame('$var', $formattedString);
 
         $formattedString = StringLiteralFormatter::formatValueForRHS('$400');
-        $this->assertEquals('"$400"', $formattedString);
+        $this->assertSame('"$400"', $formattedString);
 
         // Integer tests
         $integerString = StringLiteralFormatter::formatValueForRHS(25);
-        $this->assertEquals('25', $integerString);
+        $this->assertSame('25', $integerString);
 
         // Float tests
         $floatString = StringLiteralFormatter::formatValueForRHS(123.123);
-        $this->assertEquals('123.123', $floatString);
+        $this->assertSame('123.123', $floatString);
 
         // Bool tests
         $stringTrue = StringLiteralFormatter::formatValueForRHS(true);
-        $this->assertEquals('true', $stringTrue);
+        $this->assertSame('true', $stringTrue);
 
         $stringFalse = StringLiteralFormatter::formatValueForRHS(false);
-        $this->assertEquals('false', $stringFalse);
+        $this->assertSame('false', $stringFalse);
     }
 
     #[Test]
-    public function testFormatArrayForGQLQuery()
+    public function testFormatArrayForGQLQuery(): void
     {
         $emptyArray = [];
         $stringArray = StringLiteralFormatter::formatArrayForGQLQuery($emptyArray);
-        $this->assertEquals('[]', $stringArray);
+        $this->assertSame('[]', $stringArray);
 
         $oneValueArray = [1];
         $stringArray = StringLiteralFormatter::formatArrayForGQLQuery($oneValueArray);
-        $this->assertEquals('[1]', $stringArray);
+        $this->assertSame('[1]', $stringArray);
 
         $twoValueArray = [1, 2];
         $stringArray = StringLiteralFormatter::formatArrayForGQLQuery($twoValueArray);
-        $this->assertEquals('[1, 2]', $stringArray);
+        $this->assertSame('[1, 2]', $stringArray);
 
         $stringArray = ['one', 'two'];
         $stringArray = StringLiteralFormatter::formatArrayForGQLQuery($stringArray);
-        $this->assertEquals('["one", "two"]', $stringArray);
+        $this->assertSame('["one", "two"]', $stringArray);
 
         $booleanArray = [true, false];
         $stringArray = StringLiteralFormatter::formatArrayForGQLQuery($booleanArray);
-        $this->assertEquals('[true, false]', $stringArray);
+        $this->assertSame('[true, false]', $stringArray);
 
         $floatArray = [1.1, 2.2];
         $stringArray = StringLiteralFormatter::formatArrayForGQLQuery($floatArray);
-        $this->assertEquals('[1.1, 2.2]', $stringArray);
+        $this->assertSame('[1.1, 2.2]', $stringArray);
     }
 
     #[Test]
-    public function testFormatUpperCamelCase()
+    public function testFormatUpperCamelCase(): void
     {
         $snakeCase = 'some_snake_case';
         $camelCase = StringLiteralFormatter::formatUpperCamelCase($snakeCase);
-        $this->assertEquals('SomeSnakeCase', $camelCase);
+        $this->assertSame('SomeSnakeCase', $camelCase);
 
         $nonSnakeCase = 'somenonSnakeCase';
         $camelCase = StringLiteralFormatter::formatUpperCamelCase($nonSnakeCase);
-        $this->assertEquals('SomenonSnakeCase', $camelCase);
+        $this->assertSame('SomenonSnakeCase', $camelCase);
     }
 
     #[Test]
-    public function testFormatLowerCamelCase()
+    public function testFormatLowerCamelCase(): void
     {
         $snakeCase = 'some_snake_case';
         $camelCase = StringLiteralFormatter::formatLowerCamelCase($snakeCase);
-        $this->assertEquals('someSnakeCase', $camelCase);
+        $this->assertSame('someSnakeCase', $camelCase);
 
         $nonSnakeCase = 'somenonSnakeCase';
         $camelCase = StringLiteralFormatter::formatLowerCamelCase($nonSnakeCase);
-        $this->assertEquals('somenonSnakeCase', $camelCase);
+        $this->assertSame('somenonSnakeCase', $camelCase);
     }
 }
