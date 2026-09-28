@@ -61,6 +61,20 @@ final class ClientTest extends TestCase
     }
 
     #[Test]
+    public function testExecutesMutationThroughSharedOperationType(): void
+    {
+        $history = [];
+        $client = $this->clientWithHistory([], [], $history);
+        $mutation = (new \GraphQL\Mutation('createUser'))
+            ->setSelectionSet([(new Query('user'))->setSelectionSet(['id'])]);
+
+        $client->runQuery($mutation);
+
+        $body = json_decode((string) $history[0]['request']->getBody(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame("mutation {\ncreateUser {\nuser {\nid\n}\n}\n}", $body['query']);
+    }
+
+    #[Test]
     public function testSendsQueryAsPostBody(): void
     {
         $history = [];

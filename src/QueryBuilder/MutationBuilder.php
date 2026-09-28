@@ -1,15 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\QueryBuilder;
 
 use GraphQL\Mutation;
 
 class MutationBuilder extends QueryBuilder
 {
-    public function __construct(string $queryObject = '', string $alias = '')
+    #[\Override]
+    protected function createOperation(string $queryObject, string $alias): Mutation
     {
-        parent::__construct($queryObject, $alias);
-        $this->query = new Mutation($queryObject, $alias);
+        return new Mutation($queryObject, $alias);
     }
 
     public function getMutation(): Mutation

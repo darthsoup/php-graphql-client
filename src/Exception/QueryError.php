@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\Exception;
 
 use Psr\Http\Message\ResponseInterface;

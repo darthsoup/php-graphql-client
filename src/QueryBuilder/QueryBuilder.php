@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\QueryBuilder;
 
 use GraphQL\InlineFragment;
-use GraphQL\Query;
+use GraphQL\AbstractOperation;
 use GraphQL\RawObject;
 use GraphQL\InputObject;
 use GraphQL\VariableReference;
@@ -13,7 +15,7 @@ class QueryBuilder extends AbstractQueryBuilder
 {
     #[\Override]
     public function selectField(
-        string|QueryBuilderInterface|Query|InlineFragment|FragmentSpread $selectedField
+        string|QueryBuilderInterface|AbstractOperation|InlineFragment|FragmentSpread $selectedField
     ): static {
         return parent::selectField($selectedField);
     }

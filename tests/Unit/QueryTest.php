@@ -10,6 +10,7 @@ use GraphQL\Exception\InvalidVariableException;
 use GraphQL\InlineFragment;
 use GraphQL\InputObject;
 use GraphQL\Query;
+use GraphQL\AbstractOperation;
 use GraphQL\RawObject;
 use GraphQL\Variable;
 use GraphQL\VariableReference;
@@ -25,6 +26,7 @@ use PHPUnit\Framework\TestCase;
 use InvalidArgumentException;
 
 #[CoversClass(Query::class)]
+#[CoversClass(AbstractOperation::class)]
 final class QueryTest extends TestCase
 {
     /** @return iterable<string, array{callable(): void}> */

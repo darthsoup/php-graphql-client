@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\QueryBuilder;
 
 use GraphQL\InlineFragment;
+use GraphQL\AbstractOperation;
 use GraphQL\Query;
 use GraphQL\RawObject;
 use GraphQL\InputObject;
@@ -14,12 +17,12 @@ use GraphQL\Variable;
 
 abstract class AbstractQueryBuilder implements QueryBuilderInterface
 {
-    protected Query $query;
+    protected AbstractOperation $query;
 
     /** @var array<int, Variable> */
     private array $variables;
 
-    /** @var array<int, string|QueryBuilderInterface|Query|InlineFragment|FragmentSpread> */
+    /** @var array<int, string|QueryBuilderInterface|AbstractOperation|InlineFragment|FragmentSpread> */
     private array $selectionSet;
 
     /** @var array<int, Directive> */
@@ -33,10 +36,15 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
 
     public function __construct(string $queryObject = '', string $alias = '')
     {
-        $this->query = new Query($queryObject, $alias);
+        $this->query = $this->createOperation($queryObject, $alias);
         $this->variables = [];
         $this->selectionSet = [];
         $this->argumentsList = [];
+    }
+
+    protected function createOperation(string $queryObject, string $alias): AbstractOperation
+    {
+        return new Query($queryObject, $alias);
     }
 
     public function setAlias(string $alias): static
@@ -46,7 +54,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         return $this;
     }
 
-    public function getQuery(): Query
+    public function getQuery(): AbstractOperation
     {
         $selectionSet = [];
         foreach ($this->selectionSet as $field) {
@@ -63,7 +71,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
     }
 
     protected function selectField(
-        string|QueryBuilderInterface|Query|InlineFragment|FragmentSpread $selectedField
+        string|QueryBuilderInterface|AbstractOperation|InlineFragment|FragmentSpread $selectedField
     ): static {
         $this->selectionSet[] = $selectedField;
 

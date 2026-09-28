@@ -45,3 +45,27 @@ mutation($company: CompanyInputObject!) {
 }
 {"company":{"name":"Tech Company","type":"Testing","size":"Medium"}}
 ```
+
+## Operation abstraction
+
+`Query` and `Mutation` are sibling classes extending `AbstractOperation`. The base
+class owns names, variables, arguments, selection sets, directives, fragments,
+and rendering. Each concrete class supplies its operation keyword.
+
+Both work with `Client::runQuery()` and the existing fluent methods. Use
+`AbstractOperation` for parameters or return types that accept either operation:
+
+```php
+use GraphQL\AbstractOperation;
+
+function renderOperation(AbstractOperation $operation): string
+{
+    return (string) $operation;
+}
+```
+
+This is a breaking type change: `Mutation` no longer extends `Query`.
+Replace `Query` type declarations and `instanceof Query` checks that are intended
+to include mutations with `AbstractOperation`. `QueryBuilderInterface::getQuery()`
+now returns `AbstractOperation`; implementations returning `Query` remain valid
+through covariance. `MutationBuilder::getMutation()` still returns `Mutation`.

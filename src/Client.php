@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL;
 
 use Generator;
@@ -82,7 +84,7 @@ class Client
      * @throws JsonException
      */
     public function runQuery(
-        Query|QueryBuilderInterface $query,
+        AbstractOperation|QueryBuilderInterface $query,
         bool $resultsAsArray = false,
         array $variables = []
     ): Results {
@@ -146,7 +148,7 @@ class Client
      * @param array<string, mixed> $variables Non-pagination variables
      * @return Generator<int, array<string, mixed>>
      */
-    public function paginate(Query|QueryBuilderInterface|string $query, Pagination $pagination, array $variables = []): Generator
+    public function paginate(AbstractOperation|QueryBuilderInterface|string $query, Pagination $pagination, array $variables = []): Generator
     {
         if ($query instanceof QueryBuilderInterface) {
             $query = $query->getQuery();
