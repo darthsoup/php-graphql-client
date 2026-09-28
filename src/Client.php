@@ -2,6 +2,7 @@
 
 namespace GraphQL;
 
+use Generator;
 use GraphQL\Auth\AuthInterface;
 use GraphQL\Exception\MethodNotSupportedException;
 use GraphQL\Exception\InvalidResponseException;
@@ -125,5 +126,20 @@ class Client
         }
 
         return new Results($response, $resultsAsArray);
+    }
+
+    /**
+     * Yield records from a paginated GraphQL field, fetching each page on demand.
+     *
+     * @param array<string, mixed> $variables Non-pagination variables
+     * @return Generator<int, array<string, mixed>>
+     */
+    public function paginate(Query|QueryBuilderInterface|string $query, Pagination $pagination, array $variables = []): Generator
+    {
+        if ($query instanceof QueryBuilderInterface) {
+            $query = $query->getQuery();
+        }
+
+        return $pagination->iterate($this, (string) $query, $variables);
     }
 }

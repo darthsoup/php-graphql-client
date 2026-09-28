@@ -43,6 +43,7 @@ partial data.
 - [Build queries](docs/queries.md): fields, arguments, variables, aliases, fragments, and directives
 - [Query builder](docs/query-builder.md): fluent and dynamic query construction
 - [Client and results](docs/client.md): configuration, execution, variables, and raw queries
+- [Pagination](docs/pagination.md): lazy iteration across Lighthouse and offset pages
 - [Mutations](docs/mutations.md): constructing and running mutations
 - [Error reporting](docs/error-reporting.md): exceptions and safe reporting fields
 
@@ -53,6 +54,8 @@ The [`examples/`](examples/) directory contains runnable PHP examples:
 - [Queries](examples/query_example.php)
 - [Query builder](examples/query_builder_example.php)
 - [Directives](examples/directives_example.php)
+- [Lighthouse pagination](examples/lighthouse_pagination_example.php)
+- [Pokémon pagination](examples/pokemon_pagination_example.php)
 - [Mutations](examples/mutation_example.php)
 - [Raw queries](examples/raw_query_example.php)
 
