@@ -8,7 +8,7 @@ class InlineFragment extends NestableObject implements \Stringable
 {
     use FieldTrait;
 
-    protected const string FORMAT = '... on %s%s';
+    protected const string FORMAT = '... on %s%s%s';
 
     public function __construct(
         protected readonly string $typeName,
@@ -22,7 +22,7 @@ class InlineFragment extends NestableObject implements \Stringable
             $this->setSelectionSet($this->queryBuilder->getQuery()->getSelectionSet());
         }
 
-        return sprintf(static::FORMAT, $this->typeName, $this->constructSelectionSet());
+        return sprintf(static::FORMAT, $this->typeName, $this->constructDirectives(), $this->constructSelectionSet());
     }
 
     /** @codeCoverageIgnore */

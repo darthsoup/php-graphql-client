@@ -7,6 +7,7 @@ namespace GraphQL\Tests\Unit;
 use GraphQL\Client;
 use GraphQL\Exception\MethodNotSupportedException;
 use GraphQL\Exception\QueryError;
+use JsonException;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\RawObject;
 use GuzzleHttp\Exception\ClientException;
@@ -48,7 +49,7 @@ final class ClientTest extends TestCase
         $mockHandler = new MockHandler();
         $handler = HandlerStack::create($mockHandler);
         $handler->push(Middleware::history($history));
-        $mockHandler->append(new Response(200));
+        $mockHandler->append(new Response(200, [], '{"data":{}}'));
 
         return new Client('', $authorizationHeaders, array_merge(['handler' => $handler], $httpOptions));
     }
@@ -97,6 +98,20 @@ final class ClientTest extends TestCase
     }
 
     #[Test]
+    public function testRejectsVariablesThatCannotBeEncoded(): void
+    {
+        $resource = fopen('php://memory', 'r');
+        self::assertIsResource($resource);
+
+        try {
+            $this->expectException(JsonException::class);
+            $this->client->runRawQuery('query { field }', false, ['bad' => $resource]);
+        } finally {
+            fclose($resource);
+        }
+    }
+
+    #[Test]
     public function testHttpOptionHeadersOverrideAuthorizationHeaders(): void
     {
         $history = [];
@@ -126,7 +141,7 @@ final class ClientTest extends TestCase
     {
         $this->mockHandler->append(new Response(200, [], json_encode([
             'data' => [
-                'someData'
+                'someData' => 'value'
             ]
         ])));
 

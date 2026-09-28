@@ -10,19 +10,29 @@ class QueryError extends RuntimeException
     /** @var array<string, mixed> */
     protected array $errorDetails;
 
+    /** @var array<int, array<string, mixed>> */
+    private array $errors;
+
+    /** @var array<string, mixed> */
+    private array $responseData;
+
     /**
      * @param array<string, mixed> $errorDetails
      */
     public function __construct(array $errorDetails)
     {
+        $this->responseData = $errorDetails;
         $errors = $errorDetails['errors'] ?? [];
-        assert(is_array($errors));
+        $this->errors = [];
+        if (is_array($errors)) {
+            foreach ($errors as $error) {
+                if (is_array($error)) {
+                    $this->errors[] = $error;
+                }
+            }
+        }
 
-        $firstError = $errors[0] ?? [];
-        assert(is_array($firstError));
-
-        /** @var array<string, mixed> $firstError */
-        $this->errorDetails = $firstError;
+        $this->errorDetails = $this->errors[0] ?? [];
 
         $message = $this->errorDetails['message'] ?? '';
         parent::__construct(is_string($message) ? $message : '');
@@ -32,5 +42,25 @@ class QueryError extends RuntimeException
     public function getErrorDetails(): array
     {
         return $this->errorDetails;
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function getErrors(): array
+    {
+        return $this->errors;
+    }
+
+    /** @return array<string, mixed>|null */
+    public function getData(): ?array
+    {
+        $data = $this->responseData['data'] ?? null;
+
+        return is_array($data) ? $data : null;
+    }
+
+    /** @return array<string, mixed> */
+    public function getResponseData(): array
+    {
+        return $this->responseData;
     }
 }

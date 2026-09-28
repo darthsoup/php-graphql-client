@@ -8,9 +8,14 @@ use GraphQL\Exception\ArgumentException;
 use GraphQL\Exception\InvalidSelectionException;
 use GraphQL\Exception\InvalidVariableException;
 use GraphQL\InlineFragment;
+use GraphQL\InputObject;
 use GraphQL\Query;
 use GraphQL\RawObject;
 use GraphQL\Variable;
+use GraphQL\VariableReference;
+use GraphQL\Directive;
+use GraphQL\FragmentDefinition;
+use GraphQL\FragmentSpread;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\DependsUsingDeepClone;
@@ -223,6 +228,65 @@ Object
 }',
             (string) $query
         );
+    }
+
+    #[Test]
+    public function testRenderingNestedQueryDoesNotChangeChild(): void
+    {
+        $child = new Query('child');
+        $before = (string) $child;
+        $parent = (new Query('parent'))->setSelectionSet([$child]);
+
+        self::assertStringContainsString("\nchild\n", (string) $parent);
+        self::assertSame($before, (string) $child);
+        self::assertSame((string) $parent, (string) $parent);
+    }
+
+    #[Test]
+    public function testInputObjectsAndExplicitVariableReferences(): void
+    {
+        $query = (new Query('search'))
+            ->setArguments([
+                'filter' => new InputObject([
+                    'name' => new VariableReference('name'),
+                    'options' => new InputObject(['active' => true]),
+                    'ids' => [1, 2],
+                ]),
+            ])
+            ->setSelectionSet(['id']);
+
+        self::assertStringContainsString(
+            'filter: {name: $name, options: {active: true}, ids: [1, 2]}',
+            (string) $query
+        );
+    }
+
+    #[Test]
+    public function testDirectivesAndReusableFragments(): void
+    {
+        $fragment = (new FragmentDefinition('CompanyFields', 'Company'))
+            ->setSelectionSet(['id', 'name']);
+        $query = (new Query('company'))
+            ->setArguments(['id' => new VariableReference('id')])
+            ->setDirectives([new Directive('include', ['if' => new VariableReference('show')])])
+            ->setSelectionSet([new FragmentSpread('CompanyFields')])
+            ->setFragmentDefinitions([$fragment]);
+
+        self::assertSame(
+            "query {\ncompany(id: $" . "id) @include(if: $" . "show) {\n...CompanyFields\n}\n}"
+                . "\nfragment CompanyFields on Company {\nid\nname\n}",
+            (string) $query
+        );
+    }
+
+    #[Test]
+    public function testOperationDirective(): void
+    {
+        $query = (new Query())
+            ->setDirectives([new Directive('cached')])
+            ->setSelectionSet([new Query('field')]);
+
+        self::assertSame("query @cached {\nfield\n}", (string) $query);
     }
 
     #[Test]

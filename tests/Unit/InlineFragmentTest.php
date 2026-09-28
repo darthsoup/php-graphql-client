@@ -7,6 +7,7 @@ namespace GraphQL\Tests\Unit;
 use GraphQL\InlineFragment;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
+use GraphQL\Directive;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -93,5 +94,15 @@ field2
 }',
             (string) $fragment
         );
+    }
+
+    #[Test]
+    public function testInlineFragmentWithDirective(): void
+    {
+        $fragment = (new InlineFragment('Company'))
+            ->setDirectives([new Directive('include', ['if' => true])])
+            ->setSelectionSet(['name']);
+
+        self::assertSame("... on Company @include(if: true) {\nname\n}", (string) $fragment);
     }
 }

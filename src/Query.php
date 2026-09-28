@@ -20,10 +20,11 @@ class Query extends NestableObject implements \Stringable
     /** @var array<int, Variable> */
     protected array $variables;
 
-    /** @var array<string, string|int|float|bool|array<mixed>|RawObject|null> */
+    /** @var array<string, mixed> */
     protected array $arguments;
 
-    protected bool $isNested;
+    /** @var array<int, FragmentDefinition> */
+    protected array $fragmentDefinitions;
 
     public function __construct(string $fieldName = '', string $alias = '')
     {
@@ -33,7 +34,7 @@ class Query extends NestableObject implements \Stringable
         $this->variables = [];
         $this->arguments = [];
         $this->selectionSet = [];
-        $this->isNested = false;
+        $this->fragmentDefinitions = [];
     }
 
     public function setAlias(string $alias): static
@@ -45,9 +46,21 @@ class Query extends NestableObject implements \Stringable
 
     public function setOperationName(string $operationName): static
     {
-        if (!empty($operationName)) {
-            $this->operationName = ' ' . $operationName;
+        $this->operationName = $operationName === '' ? '' : ' ' . $operationName;
+
+        return $this;
+    }
+
+    /** @param array<int, mixed> $fragments */
+    public function setFragmentDefinitions(array $fragments): static
+    {
+        foreach ($fragments as $fragment) {
+            if (!$fragment instanceof FragmentDefinition) {
+                throw new \InvalidArgumentException('Fragments must be GraphQL\\FragmentDefinition objects');
+            }
         }
+
+        $this->fragmentDefinitions = $fragments;
 
         return $this;
     }
@@ -61,7 +74,7 @@ class Query extends NestableObject implements \Stringable
     {
         /** @var array<int, mixed> $variablesToValidate */
         $variablesToValidate = $variables;
-        $nonVarElements = array_filter($variablesToValidate, fn($element) => !$element instanceof Variable);
+        $nonVarElements = array_filter($variablesToValidate, fn ($element) => !$element instanceof Variable);
         if (count($nonVarElements) > 0) {
             throw new InvalidVariableException(
                 'At least one of the elements of the variables array provided is not an instance of GraphQL\\Variable'
@@ -74,15 +87,15 @@ class Query extends NestableObject implements \Stringable
     }
 
     /**
-     * @param array<string, string|int|float|bool|array<mixed>|RawObject|null> $arguments
+     * @param array<string, mixed> $arguments
      *
      * @throws ArgumentException
      */
     public function setArguments(array $arguments): static
     {
-        /** @var array<array-key, string|int|float|bool|array<mixed>|RawObject|null> $argumentsToValidate */
+        /** @var array<array-key, mixed> $argumentsToValidate */
         $argumentsToValidate = $arguments;
-        $nonStringArgs = array_filter(array_keys($argumentsToValidate), fn($element) => !is_string($element));
+        $nonStringArgs = array_filter(array_keys($argumentsToValidate), fn ($element) => !is_string($element));
         if (!empty($nonStringArgs)) {
             throw new ArgumentException(
                 'One or more of the arguments provided for creating the query does not have a key, '
@@ -131,15 +144,7 @@ class Query extends NestableObject implements \Stringable
                 $constraintsString .= ' ';
             }
 
-            if (is_scalar($value) || $value === null) {
-                $value = StringLiteralFormatter::formatValueForRHS($value);
-            } elseif (is_array($value)) {
-                $value = StringLiteralFormatter::formatArrayForGQLQuery($value);
-            } else {
-                $value = (string) $value;
-            }
-
-            $constraintsString .= $name . ': ' . $value;
+            $constraintsString .= $name . ': ' . StringLiteralFormatter::formatAnyValue($value);
         }
 
         return $constraintsString . ')';
@@ -147,19 +152,27 @@ class Query extends NestableObject implements \Stringable
 
     public function __toString(): string
     {
-        $queryFormat = static::QUERY_FORMAT;
-        $selectionSetString = $this->constructSelectionSet();
-
-        if (!$this->isNested) {
-            $queryFormat = $this->generateSignature();
-            if ($this->fieldName === '') {
-                return $queryFormat . $selectionSetString;
-            }
-
-            $queryFormat = $this->generateSignature() . ' {' . PHP_EOL . static::QUERY_FORMAT . PHP_EOL . '}';
+        if ($this->fieldName === '') {
+            $query = $this->generateSignature() . $this->constructDirectives() . $this->constructSelectionSet();
+        } else {
+            $query = $this->generateSignature() . ' {' . PHP_EOL . $this->toFieldString() . PHP_EOL . '}';
         }
 
-        return sprintf($queryFormat, $this->generateFieldName(), $this->constructArguments(), $selectionSetString);
+        foreach ($this->fragmentDefinitions as $fragment) {
+            $query .= PHP_EOL . (string) $fragment;
+        }
+
+        return $query;
+    }
+
+    public function toFieldString(): string
+    {
+        return sprintf(
+            static::QUERY_FORMAT,
+            $this->generateFieldName(),
+            $this->constructArguments() . $this->constructDirectives(),
+            $this->constructSelectionSet()
+        );
     }
 
     protected function generateFieldName(): string
@@ -174,6 +187,6 @@ class Query extends NestableObject implements \Stringable
 
     protected function setAsNested(): void
     {
-        $this->isNested = true;
+        // Kept for compatibility with NestableObject; rendering no longer mutates the query.
     }
 }

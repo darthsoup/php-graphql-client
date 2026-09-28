@@ -6,11 +6,14 @@ use GraphQL\Exception\InvalidSelectionException;
 
 trait FieldTrait
 {
-    /** @var array<int, string|Query|InlineFragment> */
+    /** @var array<int, string|Query|InlineFragment|FragmentSpread> */
     protected array $selectionSet;
 
+    /** @var array<int, Directive> */
+    protected array $directives = [];
+
     /**
-     * @param array<int, string|Query|InlineFragment> $selectionSet
+     * @param array<int, string|Query|InlineFragment|FragmentSpread> $selectionSet
      *
      * @throws InvalidSelectionException
      */
@@ -20,7 +23,8 @@ trait FieldTrait
         $selectionItems = $selectionSet;
         $nonStringsFields = array_filter(
             $selectionItems,
-            fn($element) => !is_string($element) && !$element instanceof Query && !$element instanceof InlineFragment
+            fn ($element) => !is_string($element) && !$element instanceof Query
+                && !$element instanceof InlineFragment && !$element instanceof FragmentSpread
         );
 
         if (!empty($nonStringsFields)) {
@@ -32,6 +36,25 @@ trait FieldTrait
         $this->selectionSet = $selectionSet;
 
         return $this;
+    }
+
+    /** @param array<int, mixed> $directives */
+    public function setDirectives(array $directives): static
+    {
+        foreach ($directives as $directive) {
+            if (!$directive instanceof Directive) {
+                throw new \InvalidArgumentException('Directives must be GraphQL\\Directive objects');
+            }
+        }
+
+        $this->directives = $directives;
+
+        return $this;
+    }
+
+    protected function constructDirectives(): string
+    {
+        return $this->directives === [] ? '' : ' ' . implode(' ', $this->directives);
     }
 
     protected function constructSelectionSet(): string
@@ -50,16 +73,16 @@ trait FieldTrait
             }
 
             if ($attribute instanceof Query) {
-                $attribute->setAsNested();
+                $attributesString .= $attribute->toFieldString();
+            } else {
+                $attributesString .= $attribute;
             }
-
-            $attributesString .= $attribute;
         }
 
         return $attributesString . PHP_EOL . '}';
     }
 
-    /** @return array<int, string|Query|InlineFragment> */
+    /** @return array<int, string|Query|InlineFragment|FragmentSpread> */
     public function getSelectionSet(): array
     {
         return $this->selectionSet;

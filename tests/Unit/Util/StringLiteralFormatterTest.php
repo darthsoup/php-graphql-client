@@ -36,7 +36,11 @@ final class StringLiteralFormatterTest extends TestCase
         $this->assertSame('"\'singleQuotes\'"', $formattedString);
 
         $formattedString = StringLiteralFormatter::formatValueForRHS("with \n newlines");
-        $this->assertSame("\"\"\"with \n newlines\"\"\"", $formattedString);
+        $this->assertSame('"with \\n newlines"', $formattedString);
+
+        $this->assertSame('"a\\\\b"', StringLiteralFormatter::formatValueForRHS('a\\b'));
+        $this->assertSame('"a\\"b"', StringLiteralFormatter::formatValueForRHS('a"b'));
+        $this->assertSame('"a\\tb"', StringLiteralFormatter::formatValueForRHS("a\tb"));
 
         $formattedString = StringLiteralFormatter::formatValueForRHS('$var');
         $this->assertSame('$var', $formattedString);

@@ -3,26 +3,25 @@
 namespace GraphQL\Util;
 
 use GraphQL\RawObject;
+use GraphQL\InputObject;
+use GraphQL\VariableReference;
+use InvalidArgumentException;
 
 class StringLiteralFormatter
 {
     /**
-     * @param string|int|float|bool|RawObject|null $value
+     * @param string|int|float|bool|RawObject|InputObject|VariableReference|null $value
      */
-    public static function formatValueForRHS(string|int|float|bool|RawObject|null $value): string
-    {
-        if ($value instanceof RawObject) {
+    public static function formatValueForRHS(
+        string|int|float|bool|RawObject|InputObject|VariableReference|null $value
+    ): string {
+        if ($value instanceof RawObject || $value instanceof InputObject || $value instanceof VariableReference) {
             return (string) $value;
         }
 
         if (is_string($value)) {
             if (!self::isVariable($value)) {
-                $value = str_replace('"', '\\"', $value);
-                if (str_contains($value, "\n")) {
-                    $value = '"""' . $value . '"""';
-                } else {
-                    $value = '"' . $value . '"';
-                }
+                $value = json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             }
         } elseif (is_bool($value)) {
             $value = $value ? 'true' : 'false';
@@ -45,23 +44,28 @@ class StringLiteralFormatter
      */
     public static function formatArrayForGQLQuery(array $array): string
     {
-        $arrString = '[';
-        $first = true;
+        $elements = [];
         foreach ($array as $element) {
-            if ($first) {
-                $first = false;
-            } else {
-                $arrString .= ', ';
-            }
-
-            if (is_array($element)) {
-                $arrString .= self::formatArrayForGQLQuery($element);
-            } elseif ($element instanceof RawObject || is_scalar($element) || $element === null) {
-                $arrString .= self::formatValueForRHS($element);
-            }
+            $elements[] = self::formatAnyValue($element);
         }
 
-        return $arrString . ']';
+        return '[' . implode(', ', $elements) . ']';
+    }
+
+    public static function formatAnyValue(mixed $value): string
+    {
+        if (is_array($value)) {
+            return self::formatArrayForGQLQuery($value);
+        }
+
+        if (
+            is_scalar($value) || $value === null || $value instanceof RawObject
+            || $value instanceof InputObject || $value instanceof VariableReference
+        ) {
+            return self::formatValueForRHS($value);
+        }
+
+        throw new InvalidArgumentException('Unsupported GraphQL input value');
     }
 
     public static function formatUpperCamelCase(string $stringValue): string

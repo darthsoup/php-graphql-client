@@ -189,6 +189,23 @@ query as it is. Whatever string is input into the RawObject constructor will be
 put in the query as it is without any custom formatting normally done by the
 query class.
 
+For values built from PHP data, use `InputObject` instead. Its fields can contain
+other `InputObject` instances, lists, or `VariableReference` instances:
+
+```php
+$gql = (new Query('companies'))
+    ->setArguments([
+        'filter' => new InputObject([
+            'name_starts_with' => new VariableReference('prefix'),
+            'options' => new InputObject(['active' => true]),
+        ]),
+    ])
+    ->setSelectionSet(['name']);
+```
+
+Strings matching `$variableName` still render as variable references for
+compatibility. Use `VariableReference` in new code to make that intent explicit.
+
 ## Query With Variables
 
 ```php
@@ -287,6 +304,22 @@ $gql->setSelectionSet(
     ]
 );
 ```
+
+## Directives and reusable fragments
+
+```php
+$fields = (new FragmentDefinition('CompanyFields', 'Company'))
+    ->setSelectionSet(['name', 'serialNumber']);
+
+$gql = (new Query('company'))
+    ->setArguments(['id' => new VariableReference('id')])
+    ->setDirectives([new Directive('include', ['if' => new VariableReference('show')])])
+    ->setSelectionSet([new FragmentSpread('CompanyFields')])
+    ->setFragmentDefinitions([$fields]);
+```
+
+`setDirectives()` also works on root queries and inline fragments. A
+`FragmentSpread` can have directives of its own.
 
 # The Query Builder
 
@@ -433,6 +466,12 @@ $results = $client->runQuery($gql, true);
 $results->getData()['companies'][1]['branches']['address'];
 ```
 
+`getData()` returns `null` when the response contains `"data": null`. Invalid
+JSON or a response without `data` or `errors` throws `InvalidResponseException`.
+When GraphQL returns errors, `QueryError` exposes every error through
+`getErrors()`, partial data through `getData()`, and the full decoded response
+through `getResponseData()`.
+
 ## Passing Variables to Queries
 
 Running queries containing variables requires passing an associative array which
@@ -515,6 +554,7 @@ can be found in the [`examples/`](examples/) directory:
 |------|-------------|
 | [`query_example.php`](examples/query_example.php) | Basic and nested queries |
 | [`query_builder_example.php`](examples/query_builder_example.php) | Building queries dynamically |
+| [`directives_example.php`](examples/directives_example.php) | Using `@include` to conditionally select Pokémon sprites |
 | [`mutation_example.php`](examples/mutation_example.php) | Creating and running mutations |
 | [`raw_query_example.php`](examples/raw_query_example.php) | Running raw GraphQL strings |
 

@@ -99,10 +99,7 @@ class Client
 
         $payloadVariables = $variables === [] ? (object) null : $variables;
         $bodyArray = ['query' => $queryString, 'variables' => $payloadVariables];
-        $encodedBody = json_encode($bodyArray);
-        if ($encodedBody === false) {
-            $encodedBody = '';
-        }
+        $encodedBody = json_encode($bodyArray, JSON_THROW_ON_ERROR);
         $request = $request->withBody(Utils::streamFor($encodedBody));
 
         if ($this->auth !== null) {
