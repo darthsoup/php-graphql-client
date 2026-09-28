@@ -6,6 +6,7 @@ namespace GraphQL\Tests\Unit;
 
 use GraphQL\Client;
 use GraphQL\Exception\MethodNotSupportedException;
+use GraphQL\Exception\InvalidResponseException;
 use GraphQL\Exception\QueryError;
 use GraphQL\Pagination;
 use GraphQL\Query;
@@ -284,6 +285,92 @@ final class ClientTest extends TestCase
         $this->client->runRawQuery('');
     }
 
+    #[Test]
+    public function testDoesNotFollowRedirectByDefault(): void
+    {
+        $history = [];
+        $handler = HandlerStack::create(new MockHandler([
+            new Response(307, ['Location' => 'https://other.test/graphql']),
+        ]));
+        $handler->push(Middleware::history($history));
+        $client = new Client('https://example.test/graphql', [], ['handler' => $handler]);
+
+        try {
+            $client->runRawQuery('query { secret }', false, ['token' => 'private']);
+            self::fail('Expected the redirect response to be rejected');
+        } catch (InvalidResponseException $exception) {
+            self::assertSame(307, $exception->getResponse()->getStatusCode());
+        }
+
+        self::assertCount(1, $history);
+        self::assertSame('https://example.test/graphql', (string) $history[0]['request']->getUri());
+    }
+
+    #[Test]
+    public function testAllowsExplicitRedirectOptIn(): void
+    {
+        $history = [];
+        $handler = HandlerStack::create(new MockHandler([
+            new Response(307, ['Location' => 'https://other.test/graphql']),
+            new Response(200, [], '{"data":{}}'),
+        ]));
+        $handler->push(Middleware::history($history));
+        $client = new Client('https://example.test/graphql', [], [
+            'handler' => $handler,
+            'allow_redirects' => true,
+        ]);
+
+        $client->runRawQuery('query { ok }');
+
+        self::assertCount(2, $history);
+        self::assertSame('https://other.test/graphql', (string) $history[1]['request']->getUri());
+    }
+
+    #[Test]
+    public function testRejectsErrorStatusFromPsrClient(): void
+    {
+        $httpClient = new class () implements \Psr\Http\Client\ClientInterface {
+            public function sendRequest(\Psr\Http\Message\RequestInterface $request): \Psr\Http\Message\ResponseInterface
+            {
+                return new Response(500, [], '{"data":{"ok":true}}');
+            }
+        };
+        $client = new Client('https://example.test/graphql', [], [], $httpClient);
+
+        $this->expectException(InvalidResponseException::class);
+        $client->runRawQuery('query { ok }');
+    }
+
+    #[Test]
+    public function testPsrClientStillParsesGraphqlErrorsOnHttp400(): void
+    {
+        $httpClient = new class () implements \Psr\Http\Client\ClientInterface {
+            public function sendRequest(\Psr\Http\Message\RequestInterface $request): \Psr\Http\Message\ResponseInterface
+            {
+                return new Response(400, [], '{"errors":[{"message":"invalid query"}]}');
+            }
+        };
+        $client = new Client('https://example.test/graphql', [], [], $httpClient);
+
+        $this->expectException(QueryError::class);
+        $client->runRawQuery('query { invalid }');
+    }
+
+    #[Test]
+    public function testRejectsHttp400WithSuccessfulData(): void
+    {
+        $httpClient = new class () implements \Psr\Http\Client\ClientInterface {
+            public function sendRequest(\Psr\Http\Message\RequestInterface $request): \Psr\Http\Message\ResponseInterface
+            {
+                return new Response(400, [], '{"data":{"ok":true}}');
+            }
+        };
+        $client = new Client('https://example.test/graphql', [], [], $httpClient);
+
+        $this->expectException(InvalidResponseException::class);
+        $client->runRawQuery('query { ok }');
+    }
+
     /** @return iterable<string, array{bool}> */
     public static function lighthousePageModes(): iterable
     {
@@ -411,6 +498,35 @@ final class ClientTest extends TestCase
 
         $this->expectException(UnexpectedValueException::class);
         iterator_to_array($client->paginate('query { posts }', Pagination::lighthouseConnection('posts', 2, 'same')));
+    }
+
+    #[Test]
+    public function testConnectionRejectsCursorCycle(): void
+    {
+        $history = [];
+        $client = $this->paginationClient([
+            ['data' => ['posts' => [
+                'edges' => [['node' => ['id' => '1']]],
+                'pageInfo' => ['hasNextPage' => true, 'endCursor' => 'A'],
+            ]]],
+            ['data' => ['posts' => [
+                'edges' => [['node' => ['id' => '2']]],
+                'pageInfo' => ['hasNextPage' => true, 'endCursor' => 'B'],
+            ]]],
+            ['data' => ['posts' => [
+                'edges' => [['node' => ['id' => '3']]],
+                'pageInfo' => ['hasNextPage' => true, 'endCursor' => 'A'],
+            ]]],
+        ], $history);
+
+        try {
+            iterator_to_array($client->paginate('query { posts }', Pagination::lighthouseConnection('posts', 1)));
+            self::fail('Expected a cursor cycle to be rejected');
+        } catch (UnexpectedValueException $exception) {
+            self::assertStringContainsString('endCursor', $exception->getMessage());
+        }
+
+        self::assertCount(3, $history);
     }
 
     #[Test]

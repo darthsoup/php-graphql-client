@@ -65,6 +65,10 @@ final readonly class Pagination
         }
 
         $position = $this->start;
+        $seenCursors = [];
+        if ($this->mode === self::LIGHTHOUSE_CONNECTION && is_string($position)) {
+            $seenCursors['cursor:' . $position] = true;
+        }
         while (true) {
             $pageVariables = $variables;
             if ($this->mode === self::OFFSET) {
@@ -93,8 +97,11 @@ final readonly class Pagination
                 $info = self::objectAt($field, 'pageInfo');
                 $hasMore = self::booleanAt($info, 'hasNextPage');
                 $next = $info['endCursor'] ?? null;
-                if ($hasMore && (!is_string($next) || $next === '' || $next === $position)) {
+                if ($hasMore && (!is_string($next) || $next === '' || isset($seenCursors['cursor:' . $next]))) {
                     throw new UnexpectedValueException('pageInfo.endCursor must advance when hasNextPage is true');
+                }
+                if ($hasMore) {
+                    $seenCursors['cursor:' . $next] = true;
                 }
             } elseif ($this->mode === self::LIGHTHOUSE_PAGES) {
                 $items = self::listAt($field, 'data');

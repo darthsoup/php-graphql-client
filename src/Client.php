@@ -61,7 +61,9 @@ class Client
         $this->options = $httpOptions;
         $this->auth = $auth;
         $this->endpointUrl = $endpointUrl;
-        $this->httpClient = $httpClient ?? new GuzzleAdapter(new \GuzzleHttp\Client($httpOptions));
+        $this->httpClient = $httpClient ?? new GuzzleAdapter(new \GuzzleHttp\Client(
+            array_replace(['allow_redirects' => false], $httpOptions)
+        ));
         $this->httpHeaders = $headers;
 
         if ($requestMethod !== 'POST') {
@@ -123,6 +125,16 @@ class Client
             if ($response->getStatusCode() !== 400) {
                 throw $exception;
             }
+        }
+
+        $status = $response->getStatusCode();
+        if ($status === 400) {
+            new Results($response, $resultsAsArray);
+
+            throw new InvalidResponseException('GraphQL endpoint returned HTTP 400 without GraphQL errors', $response);
+        }
+        if ($status < 200 || $status >= 300) {
+            throw new InvalidResponseException("GraphQL endpoint returned HTTP $status", $response);
         }
 
         return new Results($response, $resultsAsArray);

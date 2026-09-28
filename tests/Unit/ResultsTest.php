@@ -181,6 +181,17 @@ final class ResultsTest extends TestCase
     }
 
     #[Test]
+    public function testArrayFormattingPreservesObjectAndListShapes(): void
+    {
+        $results = new Results(new Response(200, [], '{"data":{"empty":{},"items":[{"id":1}]}}'), true);
+
+        self::assertSame(['empty' => [], 'items' => [['id' => 1]]], $results->getData());
+
+        $this->expectException(InvalidResponseException::class);
+        new Results(new Response(200, [], '{"data":[]}'), true);
+    }
+
+    #[Test]
     public function testReadsBodyEvenWhenStreamCursorHasMoved(): void
     {
         $response = new Response(200, [], '{"data":{"ok":true}}');
@@ -207,6 +218,20 @@ final class ResultsTest extends TestCase
             self::assertCount(2, $exception->getErrors());
             self::assertSame(['field' => 'partial'], $exception->getData());
             self::assertSame(['field' => 'partial'], $exception->getResponseData()['data']);
+        }
+    }
+
+    #[Test]
+    public function testArrayResultsPreserveGraphqlErrors(): void
+    {
+        $response = new Response(200, [], '{"data":{"field":"partial"},"errors":[{"message":"failed"}]}');
+
+        try {
+            new Results($response, true);
+            self::fail('Expected a query error');
+        } catch (QueryError $exception) {
+            self::assertSame('failed', $exception->getMessage());
+            self::assertSame(['field' => 'partial'], $exception->getData());
         }
     }
 

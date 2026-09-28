@@ -28,6 +28,8 @@ class Query extends NestableObject implements \Stringable
 
     public function __construct(string $fieldName = '', string $alias = '')
     {
+        self::assertName($fieldName, 'field', true);
+        self::assertName($alias, 'alias', true);
         $this->fieldName = $fieldName;
         $this->alias = $alias;
         $this->operationName = '';
@@ -39,6 +41,7 @@ class Query extends NestableObject implements \Stringable
 
     public function setAlias(string $alias): static
     {
+        self::assertName($alias, 'alias', true);
         $this->alias = $alias;
 
         return $this;
@@ -46,6 +49,7 @@ class Query extends NestableObject implements \Stringable
 
     public function setOperationName(string $operationName): static
     {
+        self::assertName($operationName, 'operation', true);
         $this->operationName = $operationName === '' ? '' : ' ' . $operationName;
 
         return $this;
@@ -101,6 +105,10 @@ class Query extends NestableObject implements \Stringable
                 'One or more of the arguments provided for creating the query does not have a key, '
                 . 'which represents argument name'
             );
+        }
+
+        foreach (array_keys($arguments) as $name) {
+            self::assertName($name, 'argument');
         }
 
         $this->arguments = $arguments;
@@ -188,5 +196,14 @@ class Query extends NestableObject implements \Stringable
     protected function setAsNested(): void
     {
         // Kept for compatibility with NestableObject; rendering no longer mutates the query.
+    }
+
+    private static function assertName(string $name, string $kind, bool $allowEmpty = false): void
+    {
+        if (($name === '' && $allowEmpty) || preg_match('/^[_A-Za-z][_0-9A-Za-z]*$/D', $name)) {
+            return;
+        }
+
+        throw new \InvalidArgumentException("Invalid GraphQL $kind name");
     }
 }

@@ -16,6 +16,13 @@ use PHPUnit\Framework\TestCase;
 final class InlineFragmentTest extends TestCase
 {
     #[Test]
+    public function testRejectsInvalidTypeName(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new InlineFragment('User { secret }');
+    }
+
+    #[Test]
     public function testConvertToString(): void
     {
         $fragment = new InlineFragment('Test');

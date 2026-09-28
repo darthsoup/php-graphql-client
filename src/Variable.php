@@ -12,6 +12,12 @@ class Variable implements \Stringable
         protected readonly bool $required = false,
         protected readonly string|int|float|bool|null $defaultValue = null
     ) {
+        if (!preg_match('/^[_A-Za-z][_0-9A-Za-z]*$/D', $name)) {
+            throw new \InvalidArgumentException('Invalid GraphQL variable name');
+        }
+        if (!preg_match('/^(?(DEFINE)(?<type>[_A-Za-z][_0-9A-Za-z]*|\[(?&type)!?\]))(?&type)!?$/D', $type)) {
+            throw new \InvalidArgumentException('Invalid GraphQL variable type');
+        }
     }
 
     public function __toString(): string

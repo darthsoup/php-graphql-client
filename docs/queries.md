@@ -1,5 +1,11 @@
 # Query Examples
 
+The builder validates field, alias, operation, argument, variable, and fragment
+type names as GraphQL names. Selection set strings and `RawObject` insert raw
+GraphQL syntax; use them only with trusted query text. Pass user supplied values
+as arguments or GraphQL variables rather than incorporating them into names or
+raw syntax.
+
 ## Simple Query
 
 ```php

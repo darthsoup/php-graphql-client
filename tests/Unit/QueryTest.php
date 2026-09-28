@@ -17,14 +17,34 @@ use GraphQL\Directive;
 use GraphQL\FragmentDefinition;
 use GraphQL\FragmentSpread;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\DependsUsingDeepClone;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use InvalidArgumentException;
 
 #[CoversClass(Query::class)]
 final class QueryTest extends TestCase
 {
+    /** @return iterable<string, array{callable(): void}> */
+    public static function invalidNames(): iterable
+    {
+        yield 'field' => [static fn (): Query => new Query('users { id } adminUsers')];
+        yield 'constructor alias' => [static fn (): Query => new Query('users', 'bad: alias')];
+        yield 'setter alias' => [static fn (): Query => (new Query('users'))->setAlias('bad: alias')];
+        yield 'operation' => [static fn (): Query => (new Query('users'))->setOperationName('Read { secret }')];
+        yield 'argument' => [static fn (): Query => (new Query('users'))->setArguments(['id) { secret }' => 1])];
+    }
+
+    #[Test]
+    #[DataProvider('invalidNames')]
+    public function testRejectsInvalidStructuredNames(callable $createQuery): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $createQuery();
+    }
+
     #[Test]
     public function testConvertsToString(): Query
     {

@@ -43,6 +43,8 @@ those variables in the separate `$variables` array.
 No request is sent until iteration begins. Breaking the loop prevents further
 requests. GraphQL and transport exceptions propagate as usual; missing page
 metadata or a page that cannot advance throws `UnexpectedValueException`.
+Connection pagination also rejects a cursor seen on an earlier page, preventing
+a repeating cursor cycle from fetching indefinitely.
 
 See the runnable [Lighthouse example](../examples/lighthouse_pagination_example.php)
 (offline) and [Pokémon example](../examples/pokemon_pagination_example.php)

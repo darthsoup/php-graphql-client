@@ -14,6 +14,9 @@ class InlineFragment extends NestableObject implements \Stringable
         protected readonly string $typeName,
         protected readonly ?QueryBuilderInterface $queryBuilder = null
     ) {
+        if (!preg_match('/^[_A-Za-z][_0-9A-Za-z]*$/D', $typeName)) {
+            throw new \InvalidArgumentException('Invalid GraphQL type name');
+        }
     }
 
     public function __toString(): string

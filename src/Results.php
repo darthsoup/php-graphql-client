@@ -33,7 +33,9 @@ class Results
         }
 
         if ($containsErrors) {
-            $this->reformatResults(true);
+            if (!$asArray) {
+                $this->reformatResults(true);
+            }
             assert(is_array($this->results));
             throw new QueryError($this->results, $this->responseObject);
         }
@@ -80,11 +82,51 @@ class Results
     protected function decodeResponse(bool $asArray): array|object
     {
         try {
-            $decoded = json_decode($this->responseBody, false, 512, JSON_THROW_ON_ERROR);
+            $decoded = json_decode($this->responseBody, $asArray, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {
             throw new InvalidResponseException('GraphQL response is not valid JSON', $this->responseObject, $exception);
         }
 
+        if ($asArray) {
+            if (!is_array($decoded)) {
+                throw new InvalidResponseException('GraphQL response must be an object', $this->responseObject);
+            }
+
+            $hasData = array_key_exists('data', $decoded);
+            $hasErrors = array_key_exists('errors', $decoded);
+            if (!$hasData && !$hasErrors) {
+                throw new InvalidResponseException('GraphQL response has no data or errors', $this->responseObject);
+            }
+            if ($hasData && $decoded['data'] !== null && !is_array($decoded['data'])) {
+                throw new InvalidResponseException('GraphQL response data must be an object or null', $this->responseObject);
+            }
+
+            // Associative decoding merges JSON objects and arrays. Inspect the object shape
+            // only where that distinction matters; normal data responses need one decode.
+            $needsShapeCheck = $hasErrors;
+            if ($hasData) {
+                $data = $decoded['data'];
+                if (is_array($data) && array_is_list($data)) {
+                    $needsShapeCheck = true;
+                }
+            }
+            if ($needsShapeCheck) {
+                $this->validateObjectResponse(json_decode($this->responseBody, false, 512, JSON_THROW_ON_ERROR));
+            }
+
+            return $decoded;
+        }
+
+        if (!is_object($decoded)) {
+            throw new InvalidResponseException('GraphQL response must be an object', $this->responseObject);
+        }
+        $this->validateObjectResponse($decoded);
+
+        return $decoded;
+    }
+
+    private function validateObjectResponse(mixed $decoded): void
+    {
         if (!is_object($decoded)) {
             throw new InvalidResponseException('GraphQL response must be an object', $this->responseObject);
         }
@@ -119,14 +161,5 @@ class Results
         if (!$hasData && $decoded->errors === []) {
             throw new InvalidResponseException('GraphQL response has no data or errors', $this->responseObject);
         }
-
-        if (!$asArray) {
-            return $decoded;
-        }
-
-        /** @var array<string, mixed> $results */
-        $results = json_decode($this->responseBody, true, 512, JSON_THROW_ON_ERROR);
-
-        return $results;
     }
 }
