@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL;
 
 use GraphQL\QueryBuilder\QueryBuilderInterface;
@@ -8,12 +10,15 @@ class InlineFragment extends NestableObject implements \Stringable
 {
     use FieldTrait;
 
-    protected const string FORMAT = '... on %s%s';
+    protected const string FORMAT = '... on %s%s%s';
 
     public function __construct(
         protected readonly string $typeName,
         protected readonly ?QueryBuilderInterface $queryBuilder = null
     ) {
+        if (!preg_match('/^[_A-Za-z][_0-9A-Za-z]*$/D', $typeName)) {
+            throw new \InvalidArgumentException('Invalid GraphQL type name');
+        }
     }
 
     public function __toString(): string
@@ -22,7 +27,7 @@ class InlineFragment extends NestableObject implements \Stringable
             $this->setSelectionSet($this->queryBuilder->getQuery()->getSelectionSet());
         }
 
-        return sprintf(static::FORMAT, $this->typeName, $this->constructSelectionSet());
+        return sprintf(static::FORMAT, $this->typeName, $this->constructDirectives(), $this->constructSelectionSet());
     }
 
     /** @codeCoverageIgnore */

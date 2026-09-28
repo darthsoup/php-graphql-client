@@ -8,6 +8,11 @@ use GraphQL\InlineFragment;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\RawObject;
+use GraphQL\Directive;
+use GraphQL\FragmentDefinition;
+use GraphQL\FragmentSpread;
+use GraphQL\InputObject;
+use GraphQL\VariableReference;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -286,6 +291,24 @@ another_field
 }
 }',
             (string) $this->queryBuilder->getQuery()
+        );
+    }
+
+    #[Test]
+    public function testBuildsInputObjectsAndFragments(): void
+    {
+        $fragment = (new FragmentDefinition('Fields', 'Object'))->setSelectionSet(['id']);
+        $query = (new QueryBuilder('Object'))
+            ->setArgument('filter', new InputObject(['id' => new VariableReference('id')]))
+            ->setDirectives([new Directive('include', ['if' => true])])
+            ->setFragmentDefinitions([$fragment])
+            ->selectField(new FragmentSpread('Fields'))
+            ->getQuery();
+
+        self::assertSame(
+            "query {\nObject(filter: {id: $" . "id}) @include(if: true) {\n...Fields\n}\n}"
+                . "\nfragment Fields on Object {\nid\n}",
+            (string) $query
         );
     }
 }

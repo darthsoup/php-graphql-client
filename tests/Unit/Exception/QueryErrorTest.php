@@ -44,5 +44,6 @@ final class QueryErrorTest extends TestCase
             ],
             $queryError->getErrorDetails()
         );
+        $this->assertNull($queryError->getResponseObject());
     }
 }

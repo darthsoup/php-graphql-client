@@ -1,31 +1,50 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL\QueryBuilder;
 
 use GraphQL\InlineFragment;
+use GraphQL\AbstractOperation;
 use GraphQL\Query;
 use GraphQL\RawObject;
+use GraphQL\InputObject;
+use GraphQL\VariableReference;
+use GraphQL\Directive;
+use GraphQL\FragmentDefinition;
+use GraphQL\FragmentSpread;
 use GraphQL\Variable;
 
 abstract class AbstractQueryBuilder implements QueryBuilderInterface
 {
-    protected Query $query;
+    protected AbstractOperation $query;
 
     /** @var array<int, Variable> */
     private array $variables;
 
-    /** @var array<int, string|QueryBuilderInterface|Query|InlineFragment> */
+    /** @var array<int, string|QueryBuilderInterface|AbstractOperation|InlineFragment|FragmentSpread> */
     private array $selectionSet;
 
-    /** @var array<string, string|int|float|bool|array<mixed>|RawObject> */
+    /** @var array<int, Directive> */
+    private array $directives = [];
+
+    /** @var array<int, FragmentDefinition> */
+    private array $fragmentDefinitions = [];
+
+    /** @var array<string, string|int|float|bool|array<mixed>|RawObject|InputObject|VariableReference|null> */
     private array $argumentsList;
 
     public function __construct(string $queryObject = '', string $alias = '')
     {
-        $this->query = new Query($queryObject, $alias);
+        $this->query = $this->createOperation($queryObject, $alias);
         $this->variables = [];
         $this->selectionSet = [];
         $this->argumentsList = [];
+    }
+
+    protected function createOperation(string $queryObject, string $alias): AbstractOperation
+    {
+        return new Query($queryObject, $alias);
     }
 
     public function setAlias(string $alias): static
@@ -35,7 +54,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         return $this;
     }
 
-    public function getQuery(): Query
+    public function getQuery(): AbstractOperation
     {
         $selectionSet = [];
         foreach ($this->selectionSet as $field) {
@@ -45,22 +64,43 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         $this->query->setVariables($this->variables);
         $this->query->setArguments($this->argumentsList);
         $this->query->setSelectionSet($selectionSet);
+        $this->query->setDirectives($this->directives);
+        $this->query->setFragmentDefinitions($this->fragmentDefinitions);
 
         return $this->query;
     }
 
-    protected function selectField(string|QueryBuilderInterface|Query|InlineFragment $selectedField): static
-    {
+    protected function selectField(
+        string|QueryBuilderInterface|AbstractOperation|InlineFragment|FragmentSpread $selectedField
+    ): static {
         $this->selectionSet[] = $selectedField;
 
         return $this;
     }
 
-    /**
-     * @param array<mixed>|string|int|float|bool|RawObject $argumentValue
-     */
-    protected function setArgument(string $argumentName, string|int|float|bool|array|RawObject $argumentValue): static
+    /** @param array<int, Directive> $directives */
+    public function setDirectives(array $directives): static
     {
+        $this->directives = $directives;
+
+        return $this;
+    }
+
+    /** @param array<int, FragmentDefinition> $fragments */
+    public function setFragmentDefinitions(array $fragments): static
+    {
+        $this->fragmentDefinitions = $fragments;
+
+        return $this;
+    }
+
+    /**
+     * @param array<mixed>|string|int|float|bool|RawObject|InputObject|VariableReference|null $argumentValue
+     */
+    protected function setArgument(
+        string $argumentName,
+        string|int|float|bool|array|RawObject|InputObject|VariableReference|null $argumentValue
+    ): static {
         $this->argumentsList[$argumentName] = $argumentValue;
 
         return $this;

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace GraphQL\Tests\Unit;
 
 use GraphQL\Mutation;
+use GraphQL\AbstractOperation;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Mutation::class)]
+#[CoversClass(AbstractOperation::class)]
 final class MutationTest extends TestCase
 {
     #[Test]
