@@ -64,7 +64,7 @@ class Client
         $this->httpClient = $httpClient ?? new \GuzzleHttp\Client($httpOptions);
         $this->httpHeaders = $headers;
 
-        if ($requestMethod !== 'POST') {
+        if ($requestMethod !== 'POST' && $requestMethod !== 'QUERY') {
             throw new MethodNotSupportedException($requestMethod);
         }
 

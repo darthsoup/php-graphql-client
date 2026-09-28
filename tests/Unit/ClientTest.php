@@ -87,6 +87,27 @@ final class ClientTest extends TestCase
     }
 
     #[Test]
+    public function testSendsHttpQueryWithJsonBody(): void
+    {
+        $history = [];
+        $mockHandler = new MockHandler([new Response(200, [], '{"data":{}}')]);
+        $handler = HandlerStack::create($mockHandler);
+        $handler->push(Middleware::history($history));
+        $client = new Client('https://example.test/graphql', [], ['handler' => $handler], null, 'QUERY');
+
+        $client->runRawQuery('query { viewer { id } }', false, ['id' => 42]);
+
+        /** @var Request $request */
+        $request = $history[0]['request'];
+        self::assertSame('QUERY', $request->getMethod());
+        self::assertSame('application/json', $request->getHeaderLine('Content-Type'));
+        self::assertSame(
+            '{"query":"query { viewer { id } }","variables":{"id":42}}',
+            (string) $request->getBody()
+        );
+    }
+
+    #[Test]
     public function testSendsAuthorizationHeader(): void
     {
         $history = [];
