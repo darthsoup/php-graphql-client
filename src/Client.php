@@ -4,6 +4,7 @@ namespace GraphQL;
 
 use GraphQL\Auth\AuthInterface;
 use GraphQL\Exception\MethodNotSupportedException;
+use GraphQL\Exception\InvalidResponseException;
 use GraphQL\Exception\QueryError;
 use GraphQL\QueryBuilder\QueryBuilderInterface;
 use GraphQL\Util\GuzzleAdapter;
@@ -11,6 +12,8 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Client\ClientExceptionInterface;
+use JsonException;
 
 class Client
 {
@@ -71,6 +74,9 @@ class Client
      * @param array<string, mixed> $variables
      *
      * @throws QueryError
+     * @throws InvalidResponseException
+     * @throws ClientExceptionInterface
+     * @throws JsonException
      */
     public function runQuery(
         Query|QueryBuilderInterface $query,
@@ -88,6 +94,9 @@ class Client
      * @param array<string, mixed> $variables
      *
      * @throws QueryError
+     * @throws InvalidResponseException
+     * @throws ClientExceptionInterface
+     * @throws JsonException
      */
     public function runRawQuery(string $queryString, bool $resultsAsArray = false, array $variables = []): Results
     {

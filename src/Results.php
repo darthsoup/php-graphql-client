@@ -15,7 +15,7 @@ class Results
     /** @var array<string, mixed>|object */
     protected array|object $results;
 
-    /** @throws QueryError */
+    /** @throws QueryError|InvalidResponseException */
     public function __construct(ResponseInterface $response, bool $asArray = false)
     {
         $this->responseObject = $response;
@@ -35,7 +35,7 @@ class Results
         if ($containsErrors) {
             $this->reformatResults(true);
             assert(is_array($this->results));
-            throw new QueryError($this->results);
+            throw new QueryError($this->results, $this->responseObject);
         }
     }
 

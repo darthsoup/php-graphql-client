@@ -203,6 +203,7 @@ final class ResultsTest extends TestCase
             self::fail('Expected a query error');
         } catch (QueryError $exception) {
             self::assertSame('first', $exception->getMessage());
+            self::assertSame($response, $exception->getResponseObject());
             self::assertCount(2, $exception->getErrors());
             self::assertSame(['field' => 'partial'], $exception->getData());
             self::assertSame(['field' => 'partial'], $exception->getResponseData()['data']);
