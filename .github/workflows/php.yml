@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -51,5 +52,20 @@ jobs:
       - name: Run PHPStan
         run: vendor/bin/phpstan analyse
 
+      - name: Check code style
+        run: composer style:check
+
       - name: Run tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --testsuite Unit
+
+  integration:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - run: composer install --no-interaction --no-progress
+      - run: vendor/bin/phpunit --testsuite Integration

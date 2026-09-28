@@ -549,8 +549,11 @@ $results = $client->runRawQuery($gql);
 
 ```bash
 composer install
-vendor/bin/phpunit          # run tests
+vendor/bin/phpunit  # run offline unit tests by default
+vendor/bin/phpunit --testsuite Integration  # run tests against the external API
 vendor/bin/phpstan analyse  # static analysis
+composer style:check  # check PSR-12 style with PHP-CS-Fixer
+composer style:fix  # apply style fixes
 ```
 
 Pull requests are welcome. Please ensure both commands pass before submitting.

@@ -33,7 +33,7 @@
         "phpunit/phpunit": "^12.5",
         "aws/aws-sdk-php": "^3.379",
         "phpstan/phpstan": "^2.1",
-        "squizlabs/php_codesniffer": "^4.0"
+        "friendsofphp/php-cs-fixer": "^3.95"
     },
   "autoload": {
     "psr-4": {
@@ -52,7 +52,9 @@
         "test": "phpunit --testsuite Unit",
         "test:unit": "phpunit --testsuite Unit",
         "test:integration": "phpunit --testsuite Integration",
-        "phpstan": "phpstan analyse"
+        "phpstan": "phpstan analyse",
+        "style:check": "php-cs-fixer check --diff --sequential",
+        "style:fix": "php-cs-fixer fix --sequential"
     },
     "suggest": {
         "aws/aws-sdk-php": "Move this package to require section to use AWS IAM authorization",
