@@ -38,16 +38,16 @@ try {
     $results = $client->runRawQuery($gql);
 } catch (QueryError $exception) {
     // Catch query error and display error details
-    print_r($exception->getErrorDetails());
+    dump($exception->getErrorDetails());
     exit;
 }
 
 // Display original response from endpoint
-var_dump($results->getResponseObject());
+dump($results->getResponseObject());
 
 // Display part of the returned results of the object
-var_dump($results->getData()->pokemon);
+dump($results->getData()->pokemon);
 
 // Reformat the results to an array and get the results of part of the array
 $results->reformatResults(true);
-var_dump($results->getData()['pokemon']);
+dump($results->getData()['pokemon']);

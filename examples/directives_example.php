@@ -26,10 +26,10 @@ foreach ([true, false] as $showSprites) {
     try {
         $results = $client->runQuery($gql, true, ['showSprites' => $showSprites]);
     } catch (QueryError $exception) {
-        print_r($exception->getErrors());
+        dump($exception->getErrors());
         exit(1);
     }
 
     echo $showSprites ? "With sprites:\n" : "Without sprites:\n";
-    print_r($results->getData());
+    dump($results->getData());
 }
