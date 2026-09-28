@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace GraphQL\Util;
+namespace GraphQL\Support;
 
-use GraphQL\RawObject;
 use GraphQL\InputObject;
+use GraphQL\RawObject;
 use GraphQL\VariableReference;
 use InvalidArgumentException;
 
@@ -17,23 +17,17 @@ class StringLiteralFormatter
     public static function formatValueForRHS(
         string|int|float|bool|RawObject|InputObject|VariableReference|null $value
     ): string {
-        if ($value instanceof RawObject || $value instanceof InputObject || $value instanceof VariableReference) {
-            return (string) $value;
-        }
-
-        if (is_string($value)) {
-            if (!self::isVariable($value)) {
-                $value = json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            }
-        } elseif (is_bool($value)) {
-            $value = $value ? 'true' : 'false';
-        } elseif ($value === null) {
-            $value = 'null';
-        } else {
-            $value = (string) $value;
-        }
-
-        return $value;
+        return match (true) {
+            $value instanceof RawObject,
+            $value instanceof InputObject,
+            $value instanceof VariableReference => (string) $value,
+            is_string($value) => self::isVariable($value)
+                ? $value
+                : json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            is_bool($value) => $value ? 'true' : 'false',
+            $value === null => 'null',
+            default => (string) $value,
+        };
     }
 
     private static function isVariable(string $value): bool
@@ -72,15 +66,11 @@ class StringLiteralFormatter
 
     public static function formatUpperCamelCase(string $stringValue): string
     {
-        if (!str_contains($stringValue, '_')) {
-            return ucfirst($stringValue);
-        }
-
-        return str_replace('_', '', ucwords($stringValue, '_'));
+        return StringCaseConverter::upperCamelCase($stringValue);
     }
 
     public static function formatLowerCamelCase(string $stringValue): string
     {
-        return lcfirst(static::formatUpperCamelCase($stringValue));
+        return StringCaseConverter::lowerCamelCase($stringValue);
     }
 }

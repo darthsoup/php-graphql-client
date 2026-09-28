@@ -10,8 +10,6 @@ use GraphQL\Exception\MethodNotSupportedException;
 use GraphQL\Exception\InvalidResponseException;
 use GraphQL\Exception\QueryError;
 use GraphQL\QueryBuilder\QueryBuilderInterface;
-use GraphQL\Util\GuzzleAdapter;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Client\ClientInterface;
@@ -63,9 +61,7 @@ class Client
         $this->options = $httpOptions;
         $this->auth = $auth;
         $this->endpointUrl = $endpointUrl;
-        $this->httpClient = $httpClient ?? new GuzzleAdapter(new \GuzzleHttp\Client(
-            array_replace(['allow_redirects' => false], $httpOptions)
-        ));
+        $this->httpClient = $httpClient ?? new \GuzzleHttp\Client($httpOptions);
         $this->httpHeaders = $headers;
 
         if ($requestMethod !== 'POST') {
@@ -120,14 +116,7 @@ class Client
             $request = $this->auth->run($request, $this->options);
         }
 
-        try {
-            $response = $this->httpClient->sendRequest($request);
-        } catch (ClientException $exception) {
-            $response = $exception->getResponse();
-            if ($response->getStatusCode() !== 400) {
-                throw $exception;
-            }
-        }
+        $response = $this->httpClient->sendRequest($request);
 
         $status = $response->getStatusCode();
         if ($status === 400) {

@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-namespace GraphQL\Tests\Unit\Util;
+namespace GraphQL\Tests\Unit\Support;
 
-use GraphQL\Util\StringLiteralFormatter;
+use GraphQL\Support\StringCaseConverter;
+use GraphQL\Support\StringLiteralFormatter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(StringLiteralFormatter::class)]
+#[CoversClass(StringCaseConverter::class)]
 final class StringLiteralFormatterTest extends TestCase
 {
     #[Test]
@@ -114,5 +116,12 @@ final class StringLiteralFormatterTest extends TestCase
         $nonSnakeCase = 'somenonSnakeCase';
         $camelCase = StringLiteralFormatter::formatLowerCamelCase($nonSnakeCase);
         $this->assertSame('somenonSnakeCase', $camelCase);
+    }
+
+    #[Test]
+    public function testCaseConversionHasDedicatedApi(): void
+    {
+        self::assertSame('SomeSnakeCase', StringCaseConverter::upperCamelCase('some_snake_case'));
+        self::assertSame('someSnakeCase', StringCaseConverter::lowerCamelCase('some_snake_case'));
     }
 }

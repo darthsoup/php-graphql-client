@@ -22,9 +22,10 @@ $client = new Client(
 The Client constructor also receives an optional "httpOptions" array, which
 **overrides** the "authorizationHeaders" and can be used to add custom
 [Guzzle HTTP Client request options](https://guzzle.readthedocs.io/en/latest/request-options.html).
-Redirects are disabled by default so a redirected request cannot forward query
-variables to another URL. Set `allow_redirects` explicitly if the endpoint
-requires redirects, and only do so for endpoints whose redirect targets you trust.
+The built-in Guzzle client uses its PSR-18 `sendRequest()` method. It returns
+HTTP error responses without throwing and does not follow redirects, including
+when `allow_redirects` is configured. Supply a custom HTTP client if the
+endpoint requires a different redirect policy.
 
 Example:
 
@@ -86,9 +87,9 @@ JSON or a response without `data` or `errors` throws `InvalidResponseException`.
 When GraphQL returns errors, `QueryError` exposes every error through
 `getErrors()`, partial data through `getData()`, and the full decoded response
 through `getResponseData()`.
-Guzzle normally raises an HTTP exception for error statuses. Any non-success
-response returned normally raises `InvalidResponseException`. HTTP 400 GraphQL
-errors still raise `QueryError`.
+Non-success HTTP responses raise `InvalidResponseException`. HTTP 400 GraphQL
+errors still raise `QueryError`. Transport failures propagate from the HTTP
+client.
 
 ### Passing variables to queries
 

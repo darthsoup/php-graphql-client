@@ -295,3 +295,9 @@ $gql = (new Query('company'))
 
 `setDirectives()` also works on root queries and inline fragments. A
 `FragmentSpread` can have directives of its own.
+
+## Value formatting helpers
+
+`GraphQL\Support\StringLiteralFormatter` formats GraphQL values for query
+construction. `GraphQL\Support\StringCaseConverter` provides the camel case
+helpers. Import these helpers from the `Support` namespace.

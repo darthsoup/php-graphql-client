@@ -13,9 +13,7 @@ use GraphQL\Query;
 use JsonException;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\RawObject;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
@@ -238,23 +236,19 @@ final class ClientTest extends TestCase
     #[Test]
     public function testInvalidQueryResponseWith400(): void
     {
-        $this->mockHandler->append(new ClientException(
-            '',
-            new Request('post', ''),
-            new Response(400, [], json_encode([
-                'errors' => [
-                    [
-                        'message' => 'some syntax error',
-                        'location' => [
-                            [
-                                'line' => 1,
-                                'column' => 3,
-                            ]
-                        ],
-                    ]
+        $this->mockHandler->append(new Response(400, [], json_encode([
+            'errors' => [
+                [
+                    'message' => 'some syntax error',
+                    'location' => [
+                        [
+                            'line' => 1,
+                            'column' => 3,
+                        ]
+                    ],
                 ]
-            ]))
-        ));
+            ]
+        ])));
 
         $this->expectException(QueryError::class);
         $this->client->runRawQuery('');
@@ -263,31 +257,27 @@ final class ClientTest extends TestCase
     #[Test]
     public function testUnauthorizedResponse(): void
     {
-        $this->mockHandler->append(new ClientException(
-            '',
-            new Request('post', ''),
-            new Response(401, [], json_encode('Unauthorized'))
-        ));
+        $this->mockHandler->append(new Response(401, [], json_encode('Unauthorized')));
 
-        $this->expectException(ClientException::class);
+        $this->expectException(InvalidResponseException::class);
         $this->client->runRawQuery('');
     }
 
     #[Test]
     public function testNotFoundResponse(): void
     {
-        $this->mockHandler->append(new ClientException('', new Request('post', ''), new Response(404, [])));
+        $this->mockHandler->append(new Response(404, []));
 
-        $this->expectException(ClientException::class);
+        $this->expectException(InvalidResponseException::class);
         $this->client->runRawQuery('');
     }
 
     #[Test]
     public function testInternalServerErrorResponse(): void
     {
-        $this->mockHandler->append(new ServerException('', new Request('post', ''), new Response(500, [])));
+        $this->mockHandler->append(new Response(500, []));
 
-        $this->expectException(ServerException::class);
+        $this->expectException(InvalidResponseException::class);
         $this->client->runRawQuery('');
     }
 
@@ -321,12 +311,11 @@ final class ClientTest extends TestCase
     }
 
     #[Test]
-    public function testAllowsExplicitRedirectOptIn(): void
+    public function testPsr18ClientDoesNotFollowRedirectsWhenConfigured(): void
     {
         $history = [];
         $handler = HandlerStack::create(new MockHandler([
             new Response(307, ['Location' => 'https://other.test/graphql']),
-            new Response(200, [], '{"data":{}}'),
         ]));
         $handler->push(Middleware::history($history));
         $client = new Client('https://example.test/graphql', [], [
@@ -334,10 +323,14 @@ final class ClientTest extends TestCase
             'allow_redirects' => true,
         ]);
 
-        $client->runRawQuery('query { ok }');
+        try {
+            $client->runRawQuery('query { ok }');
+            self::fail('Expected the redirect response to be rejected');
+        } catch (InvalidResponseException $exception) {
+            self::assertSame(307, $exception->getResponse()->getStatusCode());
+        }
 
-        self::assertCount(2, $history);
-        self::assertSame('https://other.test/graphql', (string) $history[1]['request']->getUri());
+        self::assertCount(1, $history);
     }
 
     #[Test]

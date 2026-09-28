@@ -6,7 +6,7 @@ namespace GraphQL;
 
 use GraphQL\Exception\ArgumentException;
 use GraphQL\Exception\InvalidVariableException;
-use GraphQL\Util\StringLiteralFormatter;
+use GraphQL\Support\StringLiteralFormatter;
 
 abstract class AbstractOperation extends NestableObject implements \Stringable
 {

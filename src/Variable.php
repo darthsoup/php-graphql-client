@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQL;
 
-use GraphQL\Util\StringLiteralFormatter;
+use GraphQL\Support\StringLiteralFormatter;
 
 class Variable implements \Stringable
 {
