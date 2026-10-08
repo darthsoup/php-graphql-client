@@ -6,3 +6,4 @@ local_*/
 /build/
 composer.lock
 .phpcs-cache
+.php-cs-fixer.cache

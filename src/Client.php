@@ -1,16 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace GraphQL;
 
+use Generator;
 use GraphQL\Auth\AuthInterface;
 use GraphQL\Exception\MethodNotSupportedException;
+use GraphQL\Exception\InvalidResponseException;
 use GraphQL\Exception\QueryError;
 use GraphQL\QueryBuilder\QueryBuilderInterface;
-use GraphQL\Util\GuzzleAdapter;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Client\ClientExceptionInterface;
+use JsonException;
 
 class Client
 {
@@ -57,10 +61,10 @@ class Client
         $this->options = $httpOptions;
         $this->auth = $auth;
         $this->endpointUrl = $endpointUrl;
-        $this->httpClient = $httpClient ?? new GuzzleAdapter(new \GuzzleHttp\Client($httpOptions));
+        $this->httpClient = $httpClient ?? new \GuzzleHttp\Client($httpOptions);
         $this->httpHeaders = $headers;
 
-        if ($requestMethod !== 'POST') {
+        if ($requestMethod !== 'POST' && $requestMethod !== 'QUERY') {
             throw new MethodNotSupportedException($requestMethod);
         }
 
@@ -71,9 +75,12 @@ class Client
      * @param array<string, mixed> $variables
      *
      * @throws QueryError
+     * @throws InvalidResponseException
+     * @throws ClientExceptionInterface
+     * @throws JsonException
      */
     public function runQuery(
-        Query|QueryBuilderInterface $query,
+        AbstractOperation|QueryBuilderInterface $query,
         bool $resultsAsArray = false,
         array $variables = []
     ): Results {
@@ -88,6 +95,9 @@ class Client
      * @param array<string, mixed> $variables
      *
      * @throws QueryError
+     * @throws InvalidResponseException
+     * @throws ClientExceptionInterface
+     * @throws JsonException
      */
     public function runRawQuery(string $queryString, bool $resultsAsArray = false, array $variables = []): Results
     {
@@ -99,25 +109,40 @@ class Client
 
         $payloadVariables = $variables === [] ? (object) null : $variables;
         $bodyArray = ['query' => $queryString, 'variables' => $payloadVariables];
-        $encodedBody = json_encode($bodyArray);
-        if ($encodedBody === false) {
-            $encodedBody = '';
-        }
+        $encodedBody = json_encode($bodyArray, JSON_THROW_ON_ERROR);
         $request = $request->withBody(Utils::streamFor($encodedBody));
 
         if ($this->auth !== null) {
             $request = $this->auth->run($request, $this->options);
         }
 
-        try {
-            $response = $this->httpClient->sendRequest($request);
-        } catch (ClientException $exception) {
-            $response = $exception->getResponse();
-            if ($response->getStatusCode() !== 400) {
-                throw $exception;
-            }
+        $response = $this->httpClient->sendRequest($request);
+
+        $status = $response->getStatusCode();
+        if ($status === 400) {
+            new Results($response, $resultsAsArray);
+
+            throw new InvalidResponseException('GraphQL endpoint returned HTTP 400 without GraphQL errors', $response);
+        }
+        if ($status < 200 || $status >= 300) {
+            throw new InvalidResponseException("GraphQL endpoint returned HTTP $status", $response);
         }
 
         return new Results($response, $resultsAsArray);
+    }
+
+    /**
+     * Yield records from a paginated GraphQL field, fetching each page on demand.
+     *
+     * @param array<string, mixed> $variables Non-pagination variables
+     * @return Generator<int, array<string, mixed>>
+     */
+    public function paginate(AbstractOperation|QueryBuilderInterface|string $query, Pagination $pagination, array $variables = []): Generator
+    {
+        if ($query instanceof QueryBuilderInterface) {
+            $query = $query->getQuery();
+        }
+
+        return $pagination->iterate($this, (string) $query, $variables);
     }
 }

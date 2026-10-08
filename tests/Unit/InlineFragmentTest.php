@@ -7,6 +7,7 @@ namespace GraphQL\Tests\Unit;
 use GraphQL\InlineFragment;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
+use GraphQL\Directive;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -14,6 +15,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InlineFragment::class)]
 final class InlineFragmentTest extends TestCase
 {
+    #[Test]
+    public function testRejectsInvalidTypeName(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new InlineFragment('User { secret }');
+    }
+
     #[Test]
     public function testConvertToString(): void
     {
@@ -93,5 +101,15 @@ field2
 }',
             (string) $fragment
         );
+    }
+
+    #[Test]
+    public function testInlineFragmentWithDirective(): void
+    {
+        $fragment = (new InlineFragment('Company'))
+            ->setDirectives([new Directive('include', ['if' => true])])
+            ->setSelectionSet(['name']);
+
+        self::assertSame("... on Company @include(if: true) {\nname\n}", (string) $fragment);
     }
 }

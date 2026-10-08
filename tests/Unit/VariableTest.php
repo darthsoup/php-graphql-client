@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQL\Tests\Unit;
 
 use GraphQL\Variable;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,6 +14,26 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Variable::class)]
 final class VariableTest extends TestCase
 {
+    #[Test]
+    public function testRejectsInvalidVariableName(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new Variable('id) { secret }', 'String');
+    }
+
+    #[Test]
+    public function testRejectsInvalidVariableType(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new Variable('id', '[]');
+    }
+
+    #[Test]
+    public function testAllowsListType(): void
+    {
+        self::assertSame('$ids: [ID!]!', (string) new Variable('ids', '[ID!]', true));
+    }
+
     #[Test]
     public function testCreateVariable(): void
     {

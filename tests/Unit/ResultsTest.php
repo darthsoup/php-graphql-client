@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQL\Tests\Unit;
 
 use GraphQL\Exception\QueryError;
+use GraphQL\Exception\InvalidResponseException;
 use GraphQL\Results;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
@@ -143,6 +144,95 @@ final class ResultsTest extends TestCase
         $response = $this->client->post('', []);
         $this->expectException(QueryError::class);
         new Results($response);
+    }
+
+    #[Test]
+    public function testRejectsMalformedResponse(): void
+    {
+        $response = new Response(200, [], 'not json');
+
+        try {
+            new Results($response);
+            self::fail('Expected an invalid response exception');
+        } catch (InvalidResponseException $exception) {
+            self::assertSame($response, $exception->getResponse());
+        }
+    }
+
+    #[Test]
+    public function testRejectsResponseWithoutDataOrErrors(): void
+    {
+        $this->expectException(InvalidResponseException::class);
+        new Results(new Response(200, [], '{}'));
+    }
+
+    #[Test]
+    public function testReturnsNullData(): void
+    {
+        $results = new Results(new Response(200, [], '{"data":null}'));
+        self::assertNull($results->getData());
+    }
+
+    #[Test]
+    public function testRejectsInvalidDataShape(): void
+    {
+        $this->expectException(InvalidResponseException::class);
+        new Results(new Response(200, [], '{"data":"unexpected"}'));
+    }
+
+    #[Test]
+    public function testArrayFormattingPreservesObjectAndListShapes(): void
+    {
+        $results = new Results(new Response(200, [], '{"data":{"empty":{},"items":[{"id":1}]}}'), true);
+
+        self::assertSame(['empty' => [], 'items' => [['id' => 1]]], $results->getData());
+
+        $this->expectException(InvalidResponseException::class);
+        new Results(new Response(200, [], '{"data":[]}'), true);
+    }
+
+    #[Test]
+    public function testReadsBodyEvenWhenStreamCursorHasMoved(): void
+    {
+        $response = new Response(200, [], '{"data":{"ok":true}}');
+        $response->getBody()->getContents();
+
+        $results = new Results($response, true);
+        self::assertSame(['ok' => true], $results->getData());
+    }
+
+    #[Test]
+    public function testPreservesAllErrorsAndPartialData(): void
+    {
+        $response = new Response(200, [], json_encode([
+            'data' => ['field' => 'partial'],
+            'errors' => [['message' => 'first'], ['message' => 'second']],
+        ], JSON_THROW_ON_ERROR));
+
+        try {
+            new Results($response);
+            self::fail('Expected a query error');
+        } catch (QueryError $exception) {
+            self::assertSame('first', $exception->getMessage());
+            self::assertSame($response, $exception->getResponseObject());
+            self::assertCount(2, $exception->getErrors());
+            self::assertSame(['field' => 'partial'], $exception->getData());
+            self::assertSame(['field' => 'partial'], $exception->getResponseData()['data']);
+        }
+    }
+
+    #[Test]
+    public function testArrayResultsPreserveGraphqlErrors(): void
+    {
+        $response = new Response(200, [], '{"data":{"field":"partial"},"errors":[{"message":"failed"}]}');
+
+        try {
+            new Results($response, true);
+            self::fail('Expected a query error');
+        } catch (QueryError $exception) {
+            self::assertSame('failed', $exception->getMessage());
+            self::assertSame(['field' => 'partial'], $exception->getData());
+        }
     }
 
     #[Test]
