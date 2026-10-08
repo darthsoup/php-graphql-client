@@ -59,6 +59,10 @@ The [`examples/`](examples/) directory contains runnable PHP examples:
 - [Mutations](examples/mutation_example.php)
 - [Raw queries](examples/raw_query_example.php)
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes and compatibility changes.
+
 ## Contributing
 
 Run `composer install`, `composer test`, `composer phpstan`, and
